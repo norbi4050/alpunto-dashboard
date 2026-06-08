@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Brainstorm Companion</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #0f1117; color: #e6edf3; padding: 24px; }
+h2 { font-size: 18px; font-weight: 700; color: #f0f6fc; margin-bottom: 6px; }
+.subtitle { font-size: 13px; color: #8b949e; margin-bottom: 24px; }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.panel { background: #161b22; border: 1px solid #21262d; border-radius: 12px; overflow: hidden; }
+.panel-title { font-size: 11px; font-weight: 600; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; padding: 10px 14px; border-bottom: 1px solid #21262d; background: #0d1117; }
+
+/* ─── Sidebar ─── */
+.sidebar { width: 100%; background: #161b22; display: flex; flex-direction: column; height: 440px; }
+
+.sidebar-header { padding: 16px; border-bottom: 1px solid #21262d; }
+.consultorio-logo { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: white; flex-shrink: 0; }
+.consultorio-row { display: flex; align-items: center; gap: 10px; }
+.consultorio-name { font-size: 12px; font-weight: 700; color: #f0f6fc; }
+.consultorio-sub { font-size: 9px; color: #8b949e; }
+
+.nav { flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+.nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; font-size: 12px; color: #8b949e; cursor: pointer; }
+.nav-item.active { background: #1a2f5c; color: #60a5fa; font-weight: 600; }
+.nav-item:not(.active):hover { background: #21262d; color: #e6edf3; }
+
+.sidebar-footer { padding: 10px 12px; border-top: 1px solid #21262d; }
+.user-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.avatar { width: 26px; height: 26px; border-radius: 50%; background: #1a2f5c; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #60a5fa; }
+.user-name { font-size: 11px; color: #e6edf3; }
+.user-role { font-size: 9px; color: #8b949e; }
+
+/* Nexo Terra logomark SVG path placeholder */
+.nt-mark { width: 18px; height: 18px; flex-shrink: 0; }
+.powered-row { display: flex; align-items: center; gap: 6px; }
+.powered-text { font-size: 9px; color: #3d444d; }
+.powered-brand { color: #60a5fa; font-weight: 600; }
+
+/* ─── Login ─── */
+.login-wrap { display: flex; align-items: center; justify-content: center; height: 440px; background: #0f1117; }
+.login-card { background: #161b22; border: 1px solid #21262d; border-radius: 16px; padding: 32px 28px; width: 280px; text-align: center; }
+.login-logo-wrap { margin-bottom: 16px; }
+.login-logo-icon { width: 56px; height: 56px; margin: 0 auto 8px; }
+.login-brand { font-size: 20px; font-weight: 800; color: #f0f6fc; letter-spacing: -0.5px; }
+.login-tagline { font-size: 10px; color: #60a5fa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+.login-client { font-size: 11px; color: #8b949e; margin-bottom: 20px; border-top: 1px solid #21262d; padding-top: 12px; }
+.login-input { width: 100%; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 9px 12px; color: #e6edf3; font-size: 12px; margin-bottom: 8px; outline: none; text-align: left; }
+.login-btn { width: 100%; background: #1b3d8f; border: none; border-radius: 8px; padding: 10px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; }
+.login-btn:hover { background: #2351b5; }
+
+/* ─── Topbar ─── */
+.topbar { background: #0d1117; border-bottom: 1px solid #21262d; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; }
+.topbar-title { font-size: 13px; font-weight: 700; color: #f0f6fc; }
+.topbar-sub { font-size: 10px; color: #8b949e; }
+.topbar-brand { display: flex; align-items: center; gap: 6px; }
+.topbar-brand-text { font-size: 10px; color: #3d444d; font-weight: 500; }
+
+/* Nexo Terra circuit leaf SVG */
+.nt-svg { display: block; }
+
+.badge { font-size: 9px; padding: 1px 5px; border-radius: 10px; font-weight: 700; }
+.badge-red { background: rgba(248,81,73,0.15); color: #f85149; }
+.badge-green { background: rgba(63,185,80,0.15); color: #3fb950; }
+
+.note { font-size: 11px; color: #8b949e; margin-top: 12px; padding: 10px 12px; background: #161b22; border: 1px solid #21262d; border-radius: 8px; }
+.note strong { color: #60a5fa; }
+</style>
+</head>
+<body>
+
+<h2>Nexo Terra — branding aplicado al dashboard</h2>
+<p class="subtitle">Paleta azul marina del logo aplicada. Cliente protagonista, Nexo Terra presente en 3 puntos.</p>
+
+<div class="split" style="margin-bottom:20px">
+
+  <!-- SIDEBAR -->
+  <div class="panel">
+    <div class="panel-title">Sidebar — cliente protagonista + footer Nexo Terra</div>
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="consultorio-row">
+          <!-- Colored initial box representing client logo placeholder -->
+          <div class="consultorio-logo" style="background: linear-gradient(135deg,#2563eb,#1d4ed8)">P</div>
+          <div>
+            <div class="consultorio-name">Policonsultorio Rivadavia</div>
+            <div class="consultorio-sub">Panel de Gestión</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <div class="nav-item active">
+          <span>📅</span> Hoy
+        </div>
+        <div class="nav-item">
+          <span>📆</span> Semana
+        </div>
+        <div class="nav-item" style="justify-content:space-between">
+          <span style="display:flex;align-items:center;gap:8px"><span>🤝</span> Atenciones</span>
+          <span class="badge badge-red">3</span>
+        </div>
+        <div class="nav-item">
+          <span>👥</span> Pacientes
+        </div>
+        <div class="nav-item" style="justify-content:space-between">
+          <span style="display:flex;align-items:center;gap:8px"><span>💬</span> En vivo</span>
+          <span class="badge badge-green">2</span>
+        </div>
+        <div class="nav-item">
+          <span>📊</span> Analytics
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-row">
+          <div class="avatar">SC</div>
+          <div>
+            <div class="user-name">secretaria</div>
+            <div class="user-role">Secretaría · <span style="color:#f85149;font-size:8px">Salir</span></div>
+          </div>
+        </div>
+        <!-- Nexo Terra branding footer -->
+        <div class="powered-row">
+          <!-- Circuit leaf logo simplified in SVG -->
+          <svg class="nt-mark nt-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Simplified circuit leaf icon -->
+            <path d="M12 3 C12 3, 7 7, 7 12 C7 16, 10 19, 12 21 C14 19, 17 16, 17 12 C17 7, 12 3, 12 3Z" fill="#1B3D8F" opacity="0.9"/>
+            <path d="M12 3 C12 3, 7 6, 8 11 C9 14, 11 17, 12 21 C13 17, 15 14, 16 11 C17 6, 12 3, 12 3Z" fill="#4BA3F5" opacity="0.7"/>
+            <line x1="12" y1="8" x2="12" y2="14" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+            <line x1="10" y1="10" x2="14" y2="10" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+            <circle cx="12" cy="8" r="0.8" fill="#fff" opacity="0.5"/>
+            <circle cx="10" cy="10" r="0.8" fill="#fff" opacity="0.5"/>
+            <circle cx="14" cy="10" r="0.8" fill="#fff" opacity="0.5"/>
+          </svg>
+          <span class="powered-text">by <span class="powered-brand">Nexo Terra</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="panel">
+    <div class="panel-title">Login — Nexo Terra protagonista</div>
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-logo-wrap">
+          <!-- Logo Nexo Terra en login -->
+          <svg class="login-logo-icon nt-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M40 8 C40 8, 20 22, 20 40 C20 54, 30 64, 40 72 C50 64, 60 54, 60 40 C60 22, 40 8, 40 8Z" fill="#1B3D8F"/>
+            <path d="M40 8 C40 8, 55 22, 55 40 C55 54, 47 64, 40 72 C33 64, 25 54, 25 40 C25 22, 40 8, 40 8Z" fill="#4BA3F5" opacity="0.8"/>
+            <!-- Circuit lines -->
+            <line x1="40" y1="20" x2="40" y2="55" stroke="white" stroke-width="1.5" opacity="0.3"/>
+            <line x1="30" y1="30" x2="50" y2="30" stroke="white" stroke-width="1.5" opacity="0.3"/>
+            <line x1="28" y1="42" x2="52" y2="42" stroke="white" stroke-width="1.5" opacity="0.3"/>
+            <circle cx="40" cy="20" r="2.5" fill="white" opacity="0.5"/>
+            <circle cx="30" cy="30" r="2.5" fill="white" opacity="0.5"/>
+            <circle cx="50" cy="30" r="2.5" fill="white" opacity="0.5"/>
+            <circle cx="28" cy="42" r="2" fill="white" opacity="0.5"/>
+            <circle cx="52" cy="42" r="2" fill="white" opacity="0.5"/>
+            <circle cx="40" cy="55" r="2.5" fill="white" opacity="0.5"/>
+          </svg>
+          <div class="login-brand">NEXO-TERRA</div>
+          <div class="login-tagline">Automation</div>
+        </div>
+        <div class="login-client">Accedés a: Policonsultorio Rivadavia</div>
+        <input class="login-input" placeholder="usuario@consultorio.com" readonly />
+        <input class="login-input" placeholder="••••••••" readonly />
+        <button class="login-btn">Ingresar →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOPBAR -->
+<div class="panel" style="margin-bottom:20px">
+  <div class="panel-title">Topbar — logo Nexo Terra esquina derecha</div>
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Hoy · Turnos del día</div>
+      <div class="topbar-sub">sábado 17 de mayo · 14 turnos</div>
+    </div>
+    <div class="topbar-brand">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M12 3 C12 3, 7 7, 7 12 C7 16, 10 19, 12 21 C14 19, 17 16, 17 12 C17 7, 12 3, 12 3Z" fill="#1B3D8F"/>
+        <path d="M12 3 C12 3, 15 6.5, 15 12 C15 16, 13.5 19, 12 21 C10.5 19, 9 16, 9 12 C9 6.5, 12 3, 12 3Z" fill="#4BA3F5" opacity="0.8"/>
+        <line x1="12" y1="7" x2="12" y2="16" stroke="white" stroke-width="0.8" opacity="0.4"/>
+        <line x1="9.5" y1="10" x2="14.5" y2="10" stroke="white" stroke-width="0.8" opacity="0.4"/>
+      </svg>
+      <span class="topbar-brand-text">Nexo Terra</span>
+    </div>
+  </div>
+  <!-- fake content below topbar -->
+  <div style="padding:14px 18px;display:flex;gap:12px">
+    <div style="flex:1;height:60px;background:#161b22;border-radius:8px;border:1px solid #21262d;padding:10px 12px">
+      <div style="font-size:9px;color:#8b949e;margin-bottom:4px">TURNOS HOY</div>
+      <div style="font-size:20px;font-weight:700;color:#f0f6fc">14</div>
+    </div>
+    <div style="flex:1;height:60px;background:#161b22;border-radius:8px;border:1px solid #21262d;padding:10px 12px">
+      <div style="font-size:9px;color:#8b949e;margin-bottom:4px">CONFIRMADOS</div>
+      <div style="font-size:20px;font-weight:700;color:#3fb950">9</div>
+    </div>
+    <div style="flex:1;height:60px;background:#161b22;border-radius:8px;border:1px solid #21262d;padding:10px 12px">
+      <div style="font-size:9px;color:#8b949e;margin-bottom:4px">EN ESPERA</div>
+      <div style="font-size:20px;font-weight:700;color:#f85149">3</div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <strong>Paleta aplicada:</strong> Navy #1B3D8F (logo oscuro + botón login + nav activo) · Sky blue #4BA3F5 (logo claro + accent links) · Grises existentes sin cambio. El logo del login y el del sidebar son aproximaciones — el PNG final reemplaza estas versiones SVG.
+</div>
+
+<script src="/helper.js"></script>
+</body>
+</html>
