@@ -1,0 +1,199 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+}
+
+@layer base {
+  /* ── LIGHT MODE (default, no .dark class) ─────────────────── */
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary-hsl: 221 77% 34%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 13% 46%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 14% 95%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 210 14% 93%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 87%;
+    --input: 220 13% 87%;
+    --ring: 221 77% 34%;
+    --radius: 0.5rem;
+
+    /* ── Stitch Design Tokens — Light ── */
+    --surface-deep:               #ffffff;
+    --surface:                    #f7f9fb;
+    --surface-dim:                #f0f2f5;
+    --surface-card:               #ffffff;
+    --surface-container-lowest:   #ffffff;
+    --surface-container-low:      #f2f4f6;
+    --surface-container:          #eceef0;
+    --surface-container-high:     #e6e8ea;
+    --surface-container-highest:  #e0e3e5;
+    --surface-variant:            #e0e3e5;
+    --surface-bright:             #ffffff;
+
+    --on-surface:                 #191c1e;
+    --on-surface-variant:         #444651;
+    --text-primary:               #191c1e;
+    --text-secondary:             #444651;
+    --text-muted:                 #747683;
+
+    --primary:                    #1b3d8f;
+    --on-primary:                 #ffffff;
+    --primary-container:          #dce2f7;
+    --on-primary-container:       #002670;
+
+    --secondary-accent:           #00897b;
+    --secondary-container:        #d0e1fb;
+
+    --status-success-bg:          rgba(26, 92, 55, 0.12);
+    --status-success-text:        #1a5c37;
+    --status-warning-bg:          rgba(140, 94, 0, 0.12);
+    --status-warning-text:        #8c5e00;
+    --status-error-bg:            rgba(186, 26, 26, 0.12);
+    --status-error-text:          #ba1a1a;
+    --status-info-bg:             rgba(27, 61, 143, 0.10);
+    --status-info-text:           #1b3d8f;
+
+    --outline:                    #747683;
+    --outline-variant:            #c4c6d3;
+
+    --border-primary:             rgba(27, 61, 143, 0.25);
+    --border-success:             rgba(26, 92, 55, 0.25);
+    --border-warning:             rgba(140, 94, 0, 0.25);
+    --border-error:               rgba(186, 26, 26, 0.25);
+
+    --glow-primary:               0 0 24px rgba(27, 61, 143, 0.12);
+    --glow-success:               0 0 24px rgba(26, 92, 55, 0.12);
+    --glow-warning:               0 0 24px rgba(140, 94, 0, 0.12);
+    --glow-error:                 0 0 24px rgba(186, 26, 26, 0.12);
+
+    --glass-bg:                   rgba(255, 255, 255, 0.80);
+    --glass-blur:                 12px;
+
+    /* backward compat — dp-* point to new vars */
+    --dp-bg-base:        var(--surface-deep);
+    --dp-bg-card:        var(--surface-container);
+    --dp-bg-card-hover:  var(--surface-container-high);
+    --dp-border-default: var(--outline-variant);
+    --dp-border-blue:    var(--border-primary);
+    --dp-border-green:   var(--border-success);
+    --dp-border-amber:   var(--border-warning);
+    --dp-border-red:     var(--border-error);
+    --dp-accent-blue:    var(--primary);
+    --dp-accent-green:   var(--status-success-text);
+    --dp-accent-amber:   var(--status-warning-text);
+    --dp-accent-red:     var(--status-error-text);
+    --dp-text-primary:   var(--on-surface);
+    --dp-text-secondary: var(--on-surface-variant);
+    --dp-text-muted:     var(--text-muted);
+    --dp-glow-blue:      var(--glow-primary);
+  }
+
+  /* ── DARK MODE ─────────────────────────────────────────────── */
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary-hsl: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+
+    /* ── Stitch Design Tokens — Dark ── */
+    --surface-deep:               #0B0F19;
+    --surface:                    #0c1322;
+    --surface-dim:                #0c1322;
+    --surface-card:               #1E293B;
+    --surface-container-lowest:   #070e1d;
+    --surface-container-low:      #141b2b;
+    --surface-container:          #191f2f;
+    --surface-container-high:     #232a3a;
+    --surface-container-highest:  #2e3545;
+    --surface-variant:            #2e3545;
+    --surface-bright:             #323949;
+
+    --on-surface:                 #dce2f7;
+    --on-surface-variant:         #c2c6d3;
+    --text-primary:               #F8FAFC;
+    --text-secondary:             #94A3B8;
+    --text-muted:                 #8c909d;
+
+    --primary:                    #abc7ff;
+    --on-primary:                 #002f66;
+    --primary-container:          #004a99;
+    --on-primary-container:       #9bbdff;
+
+    --secondary-accent:           #43ecdb;
+    --secondary-container:        #00cfbf;
+
+    --status-success-bg:          rgba(45, 106, 79, 0.25);
+    --status-success-text:        #4ade80;
+    --status-warning-bg:          rgba(176, 125, 5, 0.25);
+    --status-warning-text:        #fbbf24;
+    --status-error-bg:            rgba(155, 34, 38, 0.25);
+    --status-error-text:          #f87171;
+    --status-info-bg:             rgba(171, 199, 255, 0.12);
+    --status-info-text:           #abc7ff;
+
+    --outline:                    #8c909d;
+    --outline-variant:            #424751;
+
+    --border-primary:             rgba(171, 199, 255, 0.20);
+    --border-success:             rgba(45, 106, 79, 0.30);
+    --border-warning:             rgba(176, 125, 5, 0.30);
+    --border-error:               rgba(155, 34, 38, 0.30);
+
+    --glow-primary:               0 0 28px rgba(171, 199, 255, 0.15);
+    --glow-success:               0 0 28px rgba(45, 106, 79, 0.20);
+    --glow-warning:               0 0 28px rgba(176, 125, 5, 0.20);
+    --glow-error:                 0 0 28px rgba(155, 34, 38, 0.20);
+
+    --glass-bg:                   rgba(30, 41, 59, 0.75);
+    --glass-blur:                 12px;
+
+    /* backward compat — same mapping, vars now point to dark values */
+    --dp-bg-base:        var(--surface-deep);
+    --dp-bg-card:        var(--surface-container);
+    --dp-bg-card-hover:  var(--surface-container-high);
+    --dp-border-default: var(--outline-variant);
+    --dp-border-blue:    var(--border-primary);
+    --dp-border-green:   var(--border-success);
+    --dp-border-amber:   var(--border-warning);
+    --dp-border-red:     var(--border-error);
+    --dp-accent-blue:    var(--primary);
+    --dp-accent-green:   var(--status-success-text);
+    --dp-accent-amber:   var(--status-warning-text);
+    --dp-accent-red:     var(--status-error-text);
+    --dp-text-primary:   var(--on-surface);
+    --dp-text-secondary: var(--on-surface-variant);
+    --dp-text-muted:     var(--text-muted);
+    --dp-glow-blue:      var(--glow-primary);
+  }
+
+  * { @apply border-border; }
+  body { @apply bg-surface text-on-surface transition-colors duration-200; }
+}
