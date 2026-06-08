@@ -137,14 +137,14 @@ export default function ConfiguracionPage() {
     } else {
       const res = await fetch('/api/agenda/horarios', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ barbero_id: selectedBarberoId, dia_semana: num, hora_inicio: '09:00', hora_fin: '13:00' }) })
-      if (res.ok) setHorarios(prev => [...prev, await res.json()])
+      if (res.ok) { const nuevo = await res.json(); setHorarios(prev => [...prev, nuevo]) }
     }
   }
 
   async function agregarFranja(diaNum: number) {
     const res = await fetch('/api/agenda/horarios', { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ barbero_id: selectedBarberoId, dia_semana: diaNum, hora_inicio: '16:00', hora_fin: '20:00' }) })
-    if (res.ok) setHorarios(prev => [...prev, await res.json()])
+    if (res.ok) { const nuevo = await res.json(); setHorarios(prev => [...prev, nuevo]) }
   }
 
   async function eliminarFranja(id: string) {
