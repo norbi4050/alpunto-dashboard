@@ -450,7 +450,7 @@ export default function ConfiguracionPage() {
               {/* Métricas de ROI */}
               <section className="mb-8">
                 <h2 className="text-[10px] font-bold text-text-m uppercase tracking-widest mb-1">Métricas de ROI</h2>
-                <p className="text-[11px] text-text-m mb-3">Valores usados para calcular el impacto financiero en Analytics.</p>
+                <p className="text-[11px] text-text-m mb-3">Valores usados para calcular el impacto financiero en Reportes.</p>
                 <div className="flex gap-4 items-end">
                   <div>
                     <label className="text-[11px] text-text-m block mb-1.5">Precio promedio de corte ($)</label>
