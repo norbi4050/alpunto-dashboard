@@ -200,26 +200,27 @@ export function WeeklyCalendar({
           style={{ gridTemplateColumns: '3rem repeat(7, 1fr)' }}
         >
           {/* HEADER ROW */}
-          <div className="sticky top-0 z-20 h-14 bg-surface-container-low border-b border-r border-outline-variant" />
+          <div className="sticky top-0 z-20 bg-surface-container-low border-b border-r border-outline-variant" style={{ minHeight: 64 }} />
           {diaGrids.map(dg => {
             const today = isToday(dg.fecha)
             return (
               <div
                 key={`hdr-${dg.fechaStr}`}
-                className="sticky top-0 z-20 h-14 bg-surface-container-low border-b border-r border-outline-variant px-1.5 py-1 flex flex-col justify-between"
+                className="sticky top-0 z-20 bg-surface-container-low border-b border-r border-outline-variant px-1.5 py-1.5 flex flex-col gap-0.5"
+                style={{ minHeight: 64 }}
               >
-                <div>
-                  <p className="text-[9px] text-text-m font-semibold uppercase tracking-wide">
-                    {format(dg.fecha, 'EEE', { locale: es })}
-                  </p>
-                  <p className={`text-[11px] font-bold ${today ? 'text-stitch-primary' : 'text-text-p'}`}>
-                    {format(dg.fecha, 'd MMM', { locale: es })}
-                  </p>
+                <p className="text-[9px] text-text-m font-semibold uppercase tracking-wide leading-tight">
+                  {format(dg.fecha, 'EEE', { locale: es })}
+                </p>
+                <p className={`text-[11px] font-bold leading-tight ${today ? 'text-stitch-primary' : 'text-text-p'}`}>
+                  {format(dg.fecha, 'd MMM', { locale: es })}
                   {dg.turnoCount > 0 && !dg.isDiaBloqueado && !dg.isNoLaboral && (
-                    <p className="text-[9px] text-text-m">{dg.turnoCount} turno{dg.turnoCount !== 1 ? 's' : ''}</p>
+                    <span className="ml-1 text-[9px] font-normal text-text-m">
+                      · {dg.turnoCount}t
+                    </span>
                   )}
-                </div>
-                <div className="flex gap-1.5 items-center">
+                </p>
+                <div className="flex gap-1.5 items-center mt-auto">
                   {dg.isDiaBloqueado ? (
                     <button
                       onClick={() => habilitarDia(dg)}

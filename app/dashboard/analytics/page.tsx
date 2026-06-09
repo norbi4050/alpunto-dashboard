@@ -75,7 +75,7 @@ export default async function AnalyticsPage() {
       <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-5">
 
         {/* ROI Hero */}
-        <div className="relative overflow-hidden bg-surface-card border border-border-primary rounded-2xl p-6">
+        <div className="relative bg-surface-card border border-border-primary rounded-2xl p-6 overflow-visible">
           <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full opacity-20 blur-3xl" style={{ background: 'var(--primary)' }} />
           <p className="text-[10px] font-semibold text-stitch-primary uppercase tracking-widest mb-1">Impacto Financiero</p>
           <p className="text-sm text-text-s mb-4">Ingreso estimado vs costo mensual del sistema</p>
