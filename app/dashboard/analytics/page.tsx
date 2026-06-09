@@ -22,7 +22,7 @@ export default async function AnalyticsPage() {
   const desde = startOfMonth(ahora)
   const hasta = endOfMonth(ahora)
 
-  const [turnosResult, clientesResult, turnosBarberoResult] = await Promise.all([
+  const [turnosResult, clientesResult, turnosBarberoResult, configResult] = await Promise.all([
     supabase.from('turnos')
       .select('id, estado, fecha_hora, barbero_id, barberos(nombre)')
       .gte('fecha_hora', desde.toISOString())
@@ -34,6 +34,7 @@ export default async function AnalyticsPage() {
       .gte('fecha_hora', desde.toISOString())
       .lte('fecha_hora', hasta.toISOString())
       .not('estado', 'in', '("cancelado","auto_cancelado")'),
+    supabase.from('config').select('clave, valor').in('clave', ['barberia_valor_corte', 'barberia_costo_mensual']),
   ])
 
   const ts = turnosResult.data ?? []
@@ -44,8 +45,9 @@ export default async function AnalyticsPage() {
   const cancelRate = total > 0 ? Math.round((cancelados / total) * 100 * 10) / 10 : 0
   const clientesNuevos = clientesResult.count ?? 0
 
-  const valorCorte = parseInt(process.env.BARBERIA_VALOR_CORTE ?? '14000')
-  const costoMensual = parseInt(process.env.BARBERIA_COSTO_MENSUAL ?? '50000')
+  const cfgMap = Object.fromEntries((configResult.data ?? []).map(r => [r.clave, r.valor]))
+  const valorCorte = parseInt(cfgMap.barberia_valor_corte ?? '14000')
+  const costoMensual = parseInt(cfgMap.barberia_costo_mensual ?? '50000')
   const ingresoEst = asistidos * valorCorte
   const roi = costoMensual > 0 ? Math.round(ingresoEst / costoMensual) : 0
 

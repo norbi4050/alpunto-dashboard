@@ -101,6 +101,8 @@ export default function ConfiguracionPage() {
     mensaje_recordatorio_24h: '',
     mensaje_nudge_confirmacion: '',
     mensaje_reactivacion: '',
+    barberia_valor_corte: '14000',
+    barberia_costo_mensual: '50000',
   })
   const [barberos, setBarberos] = useState<Barbero[]>([])
   const [servicios, setServicios] = useState<Servicio[]>([])
@@ -440,6 +442,26 @@ export default function ConfiguracionPage() {
                     <p className="text-[11px] text-text-m pb-2">Los {DIAS_LABEL[promoDia]}s → {promoDescuento}% off</p>
                   </div>
                 )}
+              </section>
+
+              {/* Métricas de ROI */}
+              <section className="mb-8">
+                <h2 className="text-[10px] font-bold text-text-m uppercase tracking-widest mb-1">Métricas de ROI</h2>
+                <p className="text-[11px] text-text-m mb-3">Valores usados para calcular el impacto financiero en Analytics.</p>
+                <div className="flex gap-4 items-end">
+                  <div>
+                    <label className="text-[11px] text-text-m block mb-1.5">Precio promedio de corte ($)</label>
+                    <input type="number" min="0" value={cfg.barberia_valor_corte}
+                      onChange={e => setCfg(prev => ({ ...prev, barberia_valor_corte: e.target.value }))}
+                      className="w-32 bg-surface-container border border-outline-variant rounded-lg px-3 py-2 text-[12px] text-on-surface outline-none focus:border-stitch-primary [appearance:textfield]" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-text-m block mb-1.5">Costo mensual del sistema ($)</label>
+                    <input type="number" min="0" value={cfg.barberia_costo_mensual}
+                      onChange={e => setCfg(prev => ({ ...prev, barberia_costo_mensual: e.target.value }))}
+                      className="w-32 bg-surface-container border border-outline-variant rounded-lg px-3 py-2 text-[12px] text-on-surface outline-none focus:border-stitch-primary [appearance:textfield]" />
+                  </div>
+                </div>
               </section>
 
               {/* Números bloqueados */}
