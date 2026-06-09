@@ -220,7 +220,12 @@ export default function ConfiguracionPage() {
               <div key={s.id} className="flex items-center gap-3 p-3 rounded-lg bg-surface-card border border-outline-variant">
                 <div className="flex-1 min-w-0">
                   <p className="text-[12px] font-semibold text-text-p">{s.nombre}</p>
-                  <p className="text-[10px] text-text-m mt-0.5">{s.duracion_min} min</p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <input type="number" defaultValue={s.duracion_min} min="5" max="180"
+                      onBlur={e => { const v = parseInt(e.target.value); if (!isNaN(v) && v !== s.duracion_min) actualizarServicio(s.id, 'duracion_min', v) }}
+                      className="w-12 bg-surface-container border border-outline-variant rounded px-1.5 py-0.5 text-[11px] text-on-surface outline-none focus:border-stitch-primary [appearance:textfield]" />
+                    <span className="text-[10px] text-text-m">min</span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[11px] text-text-m">$</span>
