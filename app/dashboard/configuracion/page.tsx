@@ -103,6 +103,9 @@ export default function ConfiguracionPage() {
     mensaje_reactivacion: '',
     barberia_valor_corte: '14000',
     barberia_costo_mensual: '50000',
+    reactivacion_activa: 'false',
+    reactivacion_max_por_dia: '15',
+    reactivacion_cooldown_dias: '21',
   })
   const [barberos, setBarberos] = useState<Barbero[]>([])
   const [servicios, setServicios] = useState<Servicio[]>([])
@@ -535,7 +538,42 @@ export default function ConfiguracionPage() {
                 })}
               </div>
 
-              <div className="mt-2 p-3 rounded-lg bg-surface-container/50 border border-outline-variant/40">
+              {/* Reactivación automática (CRON-3) */}
+              <section className="mt-6 rounded-xl border border-outline-variant bg-surface-card p-4">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <p className="text-[12px] font-semibold text-text-p">Reactivación automática</p>
+                    <p className="text-[10px] text-text-m mt-0.5">
+                      Invita a cada cliente cuando se acerca su fecha estimada de próxima visita (según su frecuencia histórica).
+                    </p>
+                  </div>
+                  <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0">
+                    <input type="checkbox" checked={cfg.reactivacion_activa === 'true'}
+                      onChange={e => setCfg(prev => ({ ...prev, reactivacion_activa: String(e.target.checked) }))}
+                      className="accent-stitch-primary" />
+                    <span className="text-[11px] text-text-s">{cfg.reactivacion_activa === 'true' ? 'Activa' : 'Inactiva'}</span>
+                  </label>
+                </div>
+                <div className="flex gap-4 items-end mt-3">
+                  <div>
+                    <label className="text-[10px] text-text-m block mb-1">Máx. por día</label>
+                    <input type="number" min="1" max="100" value={cfg.reactivacion_max_por_dia ?? '15'}
+                      onChange={e => setCfg(prev => ({ ...prev, reactivacion_max_por_dia: e.target.value }))}
+                      className="w-20 bg-surface-container border border-outline-variant rounded-lg px-2 py-1.5 text-[11px] text-on-surface outline-none focus:border-stitch-primary [appearance:textfield]" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-text-m block mb-1">No repetir antes de (días)</label>
+                    <input type="number" min="7" max="90" value={cfg.reactivacion_cooldown_dias ?? '21'}
+                      onChange={e => setCfg(prev => ({ ...prev, reactivacion_cooldown_dias: e.target.value }))}
+                      className="w-20 bg-surface-container border border-outline-variant rounded-lg px-2 py-1.5 text-[11px] text-on-surface outline-none focus:border-stitch-primary [appearance:textfield]" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-sw-text mt-3 leading-relaxed">
+                  ⚠️ Solo se envía a clientes con opt-in de promos. Requiere un template de WhatsApp aprobado por Meta — hasta entonces los envíos no llegan a clientes inactivos.
+                </p>
+              </section>
+
+              <div className="mt-4 p-3 rounded-lg bg-surface-container/50 border border-outline-variant/40">
                 <p className="text-[10px] text-text-m leading-relaxed">
                   Los mensajes inactivos se muestran en gris — no se envían con el nivel actual del bot. Subí el nivel en la pestaña <strong className="text-text-s">General</strong> para activarlos.
                 </p>

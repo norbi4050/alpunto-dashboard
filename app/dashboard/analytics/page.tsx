@@ -73,7 +73,7 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Topbar title="Analytics" subtitle={`${titleDate} · Datos en tiempo real`} />
+      <Topbar title="Reportes" subtitle={`${titleDate} · Datos en tiempo real`} />
       <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-5">
 
         {/* ROI Hero */}

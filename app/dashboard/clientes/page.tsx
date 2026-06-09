@@ -88,7 +88,7 @@ export default async function ClientesPage() {
                     <td className="px-4 py-3 text-[12px] text-text-s">{c.visitas ?? 0}</td>
                     <td className="px-4 py-3 text-[12px] text-text-s">
                       {c.ultima_visita
-                        ? new Date(c.ultima_visita).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+                        ? new Date(c.ultima_visita).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
                         : '—'}
                     </td>
                     <td className="px-4 py-3 text-[12px] text-text-s">
@@ -99,7 +99,7 @@ export default async function ClientesPage() {
                     <td className="px-4 py-3 text-[12px]">
                       {proximaEst
                         ? <span className={proximaVencida ? 'text-sw-text font-semibold' : 'text-text-s'}>
-                            {proximaEst.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                            {proximaEst.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                             {proximaVencida && ' ⚠'}
                           </span>
                         : <span className="text-text-m">—</span>}

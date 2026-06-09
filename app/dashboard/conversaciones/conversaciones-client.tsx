@@ -37,7 +37,7 @@ export function ConversacionesPageClient({ role }: Props) {
       <div className="flex-1 flex overflow-hidden bg-surface-deep">
         {/* Left panel */}
         <div
-          className="w-80 flex-shrink-0 flex flex-col border-r border-outline-variant"
+          className="w-64 lg:w-80 flex-shrink-0 flex flex-col border-r border-outline-variant"
           style={{ background: 'var(--glass-bg)', backdropFilter: `blur(var(--glass-blur))` }}
         >
           <BotNivelBanner role={role} />
