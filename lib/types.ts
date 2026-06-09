@@ -7,7 +7,7 @@ export interface Turno {
   barbero_id: string
   servicio: string
   fecha_hora: string
-  estado: 'agendado' | 'confirmado' | 'cancelado' | 'auto_cancelado' | 'asistido'
+  estado: 'agendado' | 'confirmado' | 'cancelado' | 'auto_cancelado' | 'asistido' | 'no_show'
   clientes: { nombre: string; whatsapp: string | null } | null
   barberos: { nombre: string; slot: number; color: string } | null
 }
