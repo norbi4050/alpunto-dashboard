@@ -7,8 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import type { UserRole } from '@/lib/types'
 
 const NAV = [
-  { href: '/dashboard',                  label: 'Hoy',            icon: '📅', roles: ['dueno','admin'] as UserRole[] },
-  { href: '/dashboard/semana',           label: 'Semana',         icon: '📆', roles: ['dueno','admin'] as UserRole[] },
+  { href: '/dashboard',                  label: 'Hoy',            icon: '📅', roles: ['dueno','admin','barbero'] as UserRole[] },
+  { href: '/dashboard/semana',           label: 'Semana',         icon: '📆', roles: ['dueno','admin','barbero'] as UserRole[] },
   { href: '/dashboard/atenciones',       label: 'Atenciones',     icon: '🤝', roles: ['dueno','admin'] as UserRole[], badge: 'atenciones' },
   { href: '/dashboard/clientes',         label: 'Clientes',       icon: '👥', roles: ['dueno','admin'] as UserRole[] },
   { href: '/dashboard/conversaciones',   label: 'Conversaciones', icon: '💬', roles: ['dueno','admin'] as UserRole[], badge: 'enlivo' },
@@ -67,7 +67,7 @@ export function Sidebar({ role, userName, badges }: Props) {
     return () => { void supabase.removeChannel(channel) }
   }, [])
 
-  const roleLabel = role === 'dueno' ? 'Dueño' : 'Admin'
+  const roleLabel = role === 'dueno' ? 'Dueño' : role === 'barbero' ? 'Barbero' : 'Admin'
 
   return (
     <aside className="w-14 md:w-52 bg-surface-deep border-r border-outline-variant flex flex-col flex-shrink-0 h-full transition-all">

@@ -117,6 +117,7 @@ export default function ConfiguracionPage() {
   const [promoActiva, setPromoActiva] = useState(false)
   const [promoDia, setPromoDia] = useState('2')
   const [promoDescuento, setPromoDescuento] = useState('30')
+  const [acceso, setAcceso] = useState<Record<string, { email: string; password: string; saving: boolean; msg: string | null }>>({})
 
   useEffect(() => {
     Promise.all([fetch('/api/configuracion'), fetch('/api/bloquear')])
@@ -138,7 +139,7 @@ export default function ConfiguracionPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('barberos').select('id, slot, nombre, whatsapp, color, activo, es_dueno').order('slot')
+    supabase.from('barberos').select('id, slot, nombre, whatsapp, color, activo, es_dueno, auth_email').order('slot')
       .then(({ data }) => {
         if (data) { setBarberos(data as Barbero[]); if (data.length) setSelectedBarberoId(data[0].id) }
       })
@@ -180,6 +181,42 @@ export default function ConfiguracionPage() {
     await createClient().from('barberos').update({ [field]: value }).eq('id', id)
     setBarberos(prev => prev.map(b => b.id === id ? { ...b, [field]: value } : b))
     setSavingBarbero(false)
+  }
+
+  function setAccesoField(id: string, field: 'email' | 'password', value: string) {
+    setAcceso(prev => {
+      const cur = prev[id] ?? { email: '', password: '', saving: false, msg: null }
+      return { ...prev, [id]: { ...cur, [field]: value } }
+    })
+  }
+
+  async function crearAcceso(b: Barbero) {
+    const a = acceso[b.id]
+    const email = b.auth_email ?? a?.email ?? ''
+    const password = a?.password ?? ''
+    setAcceso(prev => ({ ...prev, [b.id]: { email, password, saving: true, msg: null } }))
+    const res = await fetch('/api/barberos/usuario', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ barbero_id: b.id, email, password }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (res.ok) {
+      setBarberos(prev => prev.map(x => x.id === b.id ? { ...x, auth_email: email } : x))
+      setAcceso(prev => ({ ...prev, [b.id]: { email: '', password: '', saving: false, msg: '✓ Acceso guardado' } }))
+    } else {
+      setAcceso(prev => ({ ...prev, [b.id]: { email, password, saving: false, msg: data.error ?? 'Error al guardar' } }))
+    }
+  }
+
+  async function quitarAcceso(b: Barbero) {
+    if (!window.confirm(`¿Quitar el acceso al panel de ${b.nombre}?`)) return
+    setAcceso(prev => ({ ...prev, [b.id]: { email: '', password: '', saving: true, msg: null } }))
+    const res = await fetch('/api/barberos/usuario', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ barbero_id: b.id }),
+    })
+    if (res.ok) setBarberos(prev => prev.map(x => x.id === b.id ? { ...x, auth_email: null } : x))
+    setAcceso(prev => ({ ...prev, [b.id]: { email: '', password: '', saving: false, msg: null } }))
   }
 
   async function actualizarServicio(id: string, field: keyof Servicio, value: string | number | boolean) {
@@ -357,6 +394,51 @@ export default function ConfiguracionPage() {
                           ))}
                         </div>
                       </div>
+
+                      {/* Acceso al panel (solo barberos no-dueño) */}
+                      {!b.es_dueno && (
+                        <div className="mt-2 pt-2 border-t border-outline-variant/50">
+                          <p className="text-[10px] text-text-m mb-1.5">
+                            Acceso al panel <span className="text-text-s">(solo ve su agenda)</span>
+                          </p>
+                          {b.auth_email ? (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[11px] text-ss-text font-mono">✓ {b.auth_email}</span>
+                              <input type="password" placeholder="Nueva contraseña"
+                                value={acceso[b.id]?.password ?? ''}
+                                onChange={e => setAccesoField(b.id, 'password', e.target.value)}
+                                className="w-36 bg-surface-container border border-outline-variant rounded px-2 py-1 text-[11px] text-on-surface outline-none focus:border-stitch-primary" />
+                              <button onClick={() => crearAcceso(b)} disabled={acceso[b.id]?.saving || (acceso[b.id]?.password ?? '').length < 8}
+                                className="text-[10px] text-stitch-primary hover:underline disabled:opacity-40 disabled:no-underline">
+                                Cambiar clave
+                              </button>
+                              <button onClick={() => quitarAcceso(b)} disabled={acceso[b.id]?.saving}
+                                className="text-[10px] text-se-text/70 hover:text-se-text disabled:opacity-40">
+                                Quitar acceso
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <input type="email" placeholder="email@ejemplo.com"
+                                value={acceso[b.id]?.email ?? ''}
+                                onChange={e => setAccesoField(b.id, 'email', e.target.value)}
+                                className="flex-1 min-w-[140px] bg-surface-container border border-outline-variant rounded px-2 py-1 text-[11px] text-on-surface outline-none focus:border-stitch-primary" />
+                              <input type="password" placeholder="Contraseña (mín. 8)"
+                                value={acceso[b.id]?.password ?? ''}
+                                onChange={e => setAccesoField(b.id, 'password', e.target.value)}
+                                className="w-36 bg-surface-container border border-outline-variant rounded px-2 py-1 text-[11px] text-on-surface outline-none focus:border-stitch-primary" />
+                              <button onClick={() => crearAcceso(b)}
+                                disabled={acceso[b.id]?.saving || !(acceso[b.id]?.email ?? '').includes('@') || (acceso[b.id]?.password ?? '').length < 8}
+                                className="text-[11px] bg-surface-container hover:bg-surface-container-high text-stitch-primary border border-border-primary rounded-md px-2.5 py-1 font-semibold transition-colors disabled:opacity-40">
+                                {acceso[b.id]?.saving ? 'Creando…' : 'Crear acceso'}
+                              </button>
+                            </div>
+                          )}
+                          {acceso[b.id]?.msg && (
+                            <p className={`text-[10px] mt-1 ${acceso[b.id]!.msg!.startsWith('✓') ? 'text-ss-text' : 'text-se-text'}`}>{acceso[b.id]!.msg}</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getRole } from '@/lib/auth'
+import { getRole, getBarberoId } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { Topbar } from '@/components/layout/topbar'
 import { AgendaSelectorView } from '@/components/agenda/agenda-selector-view'
@@ -17,7 +17,8 @@ export default async function SemanaPage() {
   }
   if (!user) redirect('/login')
 
-  getRole(user!.user_metadata) // validates session
+  const role = getRole(user!.user_metadata)
+  const barberoId = role === 'barbero' ? getBarberoId(user!.user_metadata) : null
 
   const desde = startOfDay(new Date())
   const hasta = addDays(desde, 7)
@@ -29,11 +30,16 @@ export default async function SemanaPage() {
     .eq('activo', true)
     .order('slot')
 
+  // Rol barbero: solo ve su propia agenda
+  const visibles = barberoId
+    ? (barberos ?? []).filter(b => b.id === barberoId)
+    : (barberos ?? [])
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <Topbar title="Agenda semanal" subtitle={subtitle} />
       <div className="flex-1 overflow-y-auto p-4">
-        <AgendaSelectorView barberos={barberos ?? []} />
+        <AgendaSelectorView barberos={visibles} />
       </div>
     </div>
   )

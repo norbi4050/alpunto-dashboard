@@ -16,7 +16,7 @@ export default async function AnalyticsPage() {
     redirect('/login')
   }
   if (!user) redirect('/login')
-  getRole(user!.user_metadata)
+  if (getRole(user!.user_metadata) === 'barbero') redirect('/dashboard')
 
   const ahora = new Date()
   const desde = startOfMonth(ahora)

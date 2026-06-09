@@ -1,6 +1,6 @@
 ﻿// app/dashboard/page.tsx
 import { createClient } from '@/lib/supabase/server'
-import { getRole } from '@/lib/auth'
+import { getRole, getBarberoId } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { Topbar } from '@/components/layout/topbar'
 import { TurnosTable } from '@/components/turnos/turnos-table'
@@ -26,23 +26,26 @@ export default async function HoyPage() {
   if (!user) redirect('/login')
 
   const role = getRole(user!.user_metadata)
+  const barberoId = role === 'barbero' ? getBarberoId(user!.user_metadata) : null
 
   const hoyStart = new Date(); hoyStart.setHours(0, 0, 0, 0)
   const hoyEnd = new Date(); hoyEnd.setHours(23, 59, 59, 999)
 
-  const { data: turnos } = await supabase
+  let query = supabase
     .from('turnos')
     .select('*, clientes(nombre,whatsapp), barberos(nombre,slot,color)')
     .gte('fecha_hora', hoyStart.toISOString())
     .lte('fecha_hora', hoyEnd.toISOString())
     .order('fecha_hora', { ascending: true })
+  if (barberoId) query = query.eq('barbero_id', barberoId)
+  const { data: turnos } = await query
 
   const turnosList = (turnos ?? []) as Turno[]
 
   const confirmados = turnosList.filter(t => t.estado === 'confirmado' || t.estado === 'asistido').length
   const pendientes = turnosList.filter(t => t.estado === 'agendado').length
   const cancelados = turnosList.filter(t => t.estado === 'cancelado' || t.estado === 'auto_cancelado').length
-  const atenciones = await getAtencionesPendientes(supabase)
+  const atenciones = role === 'barbero' ? 0 : await getAtencionesPendientes(supabase)
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -54,12 +57,12 @@ export default async function HoyPage() {
       </Topbar>
 
       <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
-        <div className="grid grid-cols-4 gap-3">
+        <div className={`grid gap-3 ${role === 'barbero' ? 'grid-cols-3' : 'grid-cols-4'}`}>
           {[
             { label: 'Confirmados',  val: confirmados, bgVar: '--status-success-bg', textClass: 'text-ss-text', borderClass: 'border-border-success', shadowClass: 'hover:shadow-glow-success' },
             { label: 'Pendientes',   val: pendientes,  bgVar: '--status-info-bg',    textClass: 'text-si-text', borderClass: 'border-border-primary', shadowClass: 'hover:shadow-glow-primary' },
             { label: 'Cancelados',   val: cancelados,  bgVar: '--status-error-bg',   textClass: 'text-se-text', borderClass: 'border-border-error',   shadowClass: 'hover:shadow-glow-error' },
-            { label: 'En atención', val: atenciones,  bgVar: '--status-warning-bg', textClass: 'text-sw-text', borderClass: 'border-border-warning', shadowClass: 'hover:shadow-glow-warning' },
+            ...(role !== 'barbero' ? [{ label: 'En atención', val: atenciones,  bgVar: '--status-warning-bg', textClass: 'text-sw-text', borderClass: 'border-border-warning', shadowClass: 'hover:shadow-glow-warning' }] : []),
           ].map(s => (
             <div
               key={s.label}
@@ -75,7 +78,7 @@ export default async function HoyPage() {
           ))}
         </div>
 
-        <TurnosTable turnos={turnosList} canCreate={true} showLink={true} />
+        <TurnosTable turnos={turnosList} canCreate={role !== 'barbero'} showLink={role !== 'barbero'} />
       </div>
     </div>
   )

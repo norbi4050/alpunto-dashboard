@@ -1,5 +1,6 @@
 // app/dashboard/clientes/page.tsx
 import { createClient } from '@/lib/supabase/server'
+import { getRole } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { Topbar } from '@/components/layout/topbar'
 import type { Cliente } from '@/lib/types'
@@ -25,6 +26,7 @@ export default async function ClientesPage() {
     redirect('/login')
   }
   if (!user) redirect('/login')
+  if (getRole(user.user_metadata) === 'barbero') redirect('/dashboard')
 
   const [clientesRes, turnosRes] = await Promise.all([
     supabase

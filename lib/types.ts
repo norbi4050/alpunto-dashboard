@@ -1,5 +1,5 @@
 // lib/types.ts
-export type UserRole = 'dueno' | 'admin'
+export type UserRole = 'dueno' | 'admin' | 'barbero'
 
 export interface Turno {
   id: string
@@ -30,6 +30,7 @@ export interface Barbero {
   color: string
   activo: boolean
   es_dueno: boolean
+  auth_email?: string | null
 }
 
 export interface Servicio {
