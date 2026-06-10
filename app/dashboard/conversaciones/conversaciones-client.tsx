@@ -1,8 +1,8 @@
 // app/dashboard/conversaciones/conversaciones-client.tsx
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { HistorialList } from '@/components/conversaciones/historial-list'
+import { HistorialList, type HistorialListHandle } from '@/components/conversaciones/historial-list'
 import { HistorialChatPanel } from '@/components/conversaciones/historial-chat-panel'
 import { BotNivelBanner } from '@/components/conversaciones/bot-nivel-banner'
 import { MetricasVivo } from '@/components/conversaciones/metricas-vivo'
@@ -24,8 +24,14 @@ function EmptyState() {
 export function ConversacionesPageClient({ role }: Props) {
   const searchParams = useSearchParams()
   const initialPhone = searchParams.get('telefono')
+  const listRef = useRef<HistorialListHandle>(null)
 
   const [selected, setSelected] = useState<Conversacion | null>(null)
+
+  function handleConvUpdate(conv: Conversacion) {
+    setSelected(conv)
+    listRef.current?.updateConv(conv)  // actualiza badge en la lista inmediatamente
+  }
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -43,6 +49,7 @@ export function ConversacionesPageClient({ role }: Props) {
           <BotNivelBanner role={role} />
           <MetricasVivo />
           <HistorialList
+            ref={listRef}
             selectedPhone={selected?.telefono ?? null}
             onSelect={setSelected}
             initialPhone={initialPhone}
@@ -61,7 +68,7 @@ export function ConversacionesPageClient({ role }: Props) {
                 className="md:hidden flex items-center gap-2 px-4 py-3 border-b border-outline-variant text-sm text-stitch-primary font-semibold bg-surface-card flex-shrink-0">
                 ← Conversaciones
               </button>
-              <HistorialChatPanel conv={selected} onConvUpdate={setSelected} onReset={() => setSelected(null)} role={role} />
+              <HistorialChatPanel conv={selected} onConvUpdate={handleConvUpdate} onReset={() => setSelected(null)} role={role} />
             </>
           ) : (
             <EmptyState />

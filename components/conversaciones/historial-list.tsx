@@ -1,11 +1,15 @@
 ﻿// dashboard/components/conversaciones/historial-list.tsx
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Conversacion } from '@/lib/types'
 import { format, isToday, parseISO } from 'date-fns'
 
 type FilterType = 'all' | 'atencion' | 'ia' | 'esperando' | 'agendado'
+
+export interface HistorialListHandle {
+  updateConv: (conv: Conversacion) => void
+}
 
 interface Badge {
   icon: string
@@ -56,7 +60,9 @@ interface Props {
   role: string
 }
 
-export function HistorialList({ selectedPhone, onSelect, initialPhone, role: _role }: Props) {
+export const HistorialList = forwardRef<HistorialListHandle, Props>(function HistorialList(
+  { selectedPhone, onSelect, initialPhone, role: _role }, ref
+) {
   const [convs, setConvs] = useState<Conversacion[]>([])
   const [clientesMap, setClientesMap] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
@@ -65,6 +71,21 @@ export function HistorialList({ selectedPhone, onSelect, initialPhone, role: _ro
   const [dateInput, setDateInput] = useState('')
   const [filter, setFilter] = useState<FilterType>('all')
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  // Permite actualizar un item de la lista directamente sin esperar real-time
+  useImperativeHandle(ref, () => ({
+    updateConv: (conv: Conversacion) => {
+      setConvs(prev => prev
+        .map(c => c.telefono === conv.telefono ? conv : c)
+        .sort((a, b) => {
+          const pa = getBadge(a).priority
+          const pb = getBadge(b).priority
+          if (pa !== pb) return pa - pb
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        })
+      )
+    }
+  }))
 
   useEffect(() => {
     const supabase = createClient()
@@ -286,4 +307,4 @@ export function HistorialList({ selectedPhone, onSelect, initialPhone, role: _ro
       </div>
     </div>
   )
-}
+})
