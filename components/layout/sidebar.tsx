@@ -25,6 +25,7 @@ const NAV = [
   { href: '/dashboard/atenciones',       label: 'Atenciones',     icon: '🤝', roles: ['dueno','admin'] as UserRole[], badge: 'atenciones' },
   { href: '/dashboard/clientes',         label: 'Clientes',       icon: '👥', roles: ['dueno','admin'] as UserRole[] },
   { href: '/dashboard/conversaciones',   label: 'Conversaciones', icon: '💬', roles: ['dueno','admin'] as UserRole[], badge: 'enlivo' },
+  { href: '/dashboard/feedbacks',        label: 'Reseñas',        icon: '⭐', roles: ['dueno','admin'] as UserRole[], badge: 'feedbacks' },
   { href: '/dashboard/analytics',        label: 'Reportes',       icon: '📊', roles: ['dueno','admin'] as UserRole[] },
   { href: '/dashboard/configuracion',    label: 'Configuración',  icon: '⚙️', roles: ['dueno','admin'] as UserRole[] },
 ]
@@ -32,7 +33,7 @@ const NAV = [
 interface Props {
   role: UserRole
   userName: string
-  badges?: { atenciones: number; enlivo: number }
+  badges?: { atenciones: number; enlivo: number; feedbacks: number }
 }
 
 export function Sidebar({ role, userName, badges }: Props) {
@@ -44,7 +45,7 @@ export function Sidebar({ role, userName, badges }: Props) {
       : new Date(0).toISOString()
   )
   const items = NAV.filter(n => n.roles.includes(role))
-  const [badgeCounts, setBadgeCounts] = useState(badges ?? { atenciones: 0, enlivo: 0 })
+  const [badgeCounts, setBadgeCounts] = useState(badges ?? { atenciones: 0, enlivo: 0, feedbacks: 0 })
   const [mobileOpen, setMobileOpen] = useState(false)
   const isMobile = useIsMobile()
 
@@ -69,16 +70,17 @@ export function Sidebar({ role, userName, badges }: Props) {
   useEffect(() => {
     const supabase = createClient()
     const fetchCounts = async () => {
-      const [{ count: aten }, { count: enlivo }] = await Promise.all([
+      const [{ count: aten }, { count: enlivo }, { count: feedbacks }] = await Promise.all([
         supabase.from('conversaciones').select('*', { count: 'exact', head: true }).eq('handoff_humano', true),
         supabase.from('conversaciones').select('*', { count: 'exact', head: true })
           .neq('estado', 'inicio')
           .gt('updated_at', lastSeenRef.current),
+        supabase.from('feedbacks').select('*', { count: 'exact', head: true }).eq('leido', false),
       ])
       if (pathnameRef.current.startsWith('/dashboard/conversaciones')) {
-        setBadgeCounts({ atenciones: aten ?? 0, enlivo: 0 })
+        setBadgeCounts({ atenciones: aten ?? 0, enlivo: 0, feedbacks: feedbacks ?? 0 })
       } else {
-        setBadgeCounts({ atenciones: aten ?? 0, enlivo: enlivo ?? 0 })
+        setBadgeCounts({ atenciones: aten ?? 0, enlivo: enlivo ?? 0, feedbacks: feedbacks ?? 0 })
       }
     }
     void fetchCounts()

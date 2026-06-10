@@ -90,7 +90,52 @@ export async function POST(req: NextRequest) {
     await enviarConfirmacionWA(telefono, body.nombre, body.fecha_hora, body.servicio_nombre, body.barbero_nombre)
   } catch { /* no bloquear si WA falla */ }
 
+  // Upsell de productos (no bloqueante)
+  try {
+    const { data: productos } = await supabase
+      .from('productos').select('id,nombre,precio').eq('activo', true).order('orden').limit(3)
+    if (productos?.length) {
+      await enviarUpsellWA(telefono, turnoCreado.id, productos)
+    }
+  } catch { /* upsell es opcional */ }
+
   return NextResponse.json({ ok: true, turno_id: turnoCreado.id })
+}
+
+function fmtPrecio(n: number) {
+  return '$' + String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+}
+
+async function enviarUpsellWA(
+  telefono: string, turnoId: string,
+  productos: { id: string; nombre: string; precio: number }[]
+) {
+  const token = process.env.META_SYSTEM_USER_TOKEN
+  const phoneId = process.env.META_PHONE_NUMBER_ID
+  if (!token || !phoneId) return
+
+  const listado = productos.map(p => `• ${p.nombre} — ${fmtPrecio(p.precio)}`).join('\n')
+  const buttons = [
+    ...productos.slice(0, 2).map(p => ({
+      type: 'reply', reply: { id: `prod_${p.id}`, title: p.nombre.slice(0, 20) }
+    })),
+    { type: 'reply', reply: { id: 'prod_no', title: '❌ No, gracias' } }
+  ]
+
+  await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to: telefono.replace(/\D/g, ''),
+      type: 'interactive',
+      interactive: {
+        type: 'button',
+        body: { text: `🧴 *¿Te llevás algo para casa?*\n\n${listado}` },
+        action: { buttons }
+      }
+    }),
+  })
 }
 
 async function enviarConfirmacionWA(
