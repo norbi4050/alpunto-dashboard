@@ -35,9 +35,9 @@ export function ConversacionesPageClient({ role }: Props) {
       />
 
       <div className="flex-1 flex overflow-hidden bg-surface-deep">
-        {/* Left panel */}
+        {/* Left panel — oculto en mobile cuando hay conversación seleccionada */}
         <div
-          className="w-64 lg:w-80 flex-shrink-0 flex flex-col border-r border-outline-variant"
+          className={`${selected ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-64 lg:w-80 flex-shrink-0 border-r border-outline-variant`}
           style={{ background: 'var(--glass-bg)', backdropFilter: `blur(var(--glass-blur))` }}
         >
           <BotNivelBanner role={role} />
@@ -49,15 +49,23 @@ export function ConversacionesPageClient({ role }: Props) {
             role={role}
           />
         </div>
-        {/* Right panel */}
+        {/* Right panel — fullscreen en mobile cuando hay selección */}
         <div
-          className="flex-1 flex flex-col overflow-hidden"
+          className={`${selected ? 'flex' : 'hidden md:flex'} flex-1 flex-col overflow-hidden`}
           style={{ background: 'var(--glass-bg)', backdropFilter: `blur(var(--glass-blur))` }}
         >
-          {selected
-            ? <HistorialChatPanel conv={selected} onConvUpdate={setSelected} onReset={() => setSelected(null)} role={role} />
-            : <EmptyState />
-          }
+          {selected ? (
+            <>
+              <button
+                onClick={() => setSelected(null)}
+                className="md:hidden flex items-center gap-2 px-4 py-3 border-b border-outline-variant text-sm text-stitch-primary font-semibold bg-surface-card flex-shrink-0">
+                ← Conversaciones
+              </button>
+              <HistorialChatPanel conv={selected} onConvUpdate={setSelected} onReset={() => setSelected(null)} role={role} />
+            </>
+          ) : (
+            <EmptyState />
+          )}
         </div>
       </div>
     </div>

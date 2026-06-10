@@ -7,7 +7,8 @@ export async function GET() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  if (getRole(user.user_metadata) !== 'dueno') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  // Lectura: dueño, admin y barbero pueden leer config (BotNivelBanner lo necesita)
+  // Solo dueño puede modificar (PATCH abajo)
 
   const { data } = await supabase.from('config').select('clave, valor')
   return NextResponse.json({

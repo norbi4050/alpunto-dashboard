@@ -38,7 +38,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         userName={userName}
         badges={{ atenciones: atencionesCount ?? 0, enlivo: enVivoCount ?? 0 }}
       />
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden min-w-0">
         {children}
       </main>
     </div>

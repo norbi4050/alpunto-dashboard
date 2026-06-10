@@ -56,8 +56,8 @@ export default async function HoyPage() {
         </div>
       </Topbar>
 
-      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
-        <div className={`grid gap-3 ${role === 'barbero' ? 'grid-cols-3' : 'grid-cols-4'}`}>
+      <div className="flex-1 overflow-y-auto p-3 md:p-6 flex flex-col gap-3 md:gap-4">
+        <div className={`grid gap-2 md:gap-3 ${role === 'barbero' ? 'grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
           {[
             { label: 'Confirmados',  val: confirmados, bgVar: '--status-success-bg', textClass: 'text-ss-text', borderClass: 'border-border-success', shadowClass: 'hover:shadow-glow-success' },
             { label: 'Pendientes',   val: pendientes,  bgVar: '--status-info-bg',    textClass: 'text-si-text', borderClass: 'border-border-primary', shadowClass: 'hover:shadow-glow-primary' },
