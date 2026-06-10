@@ -16,6 +16,21 @@ interface Body {
   servicio_precio?: number
 }
 
+// Normaliza teléfono argentino al formato internacional que usa WhatsApp (549XXXXXXXXXX)
+// Cubre los casos más comunes de entrada manual:
+//   3755414064   → 5493755414064  (10 dígitos, interior)
+//   03755414064  → 5493755414064  (con 0 local)
+//   9113755414064→ 549...         (ya con 549)
+function normalizarTelAR(tel: string): string {
+  const d = tel.replace(/\D/g, '')
+  if (!d) return d
+  if (d.startsWith('549')) return d                              // ya completo
+  if (d.startsWith('54'))  return `549${d.slice(2)}`            // falta el 9 móvil
+  if (d.startsWith('0'))   return `549${d.slice(1)}`            // 0XXXXXXXXXX
+  if (d.length === 10)     return `549${d}`                     // área + número
+  return d
+}
+
 export async function POST(req: NextRequest) {
   const body: Body = await req.json()
   const supabase = createClient()
@@ -42,11 +57,12 @@ export async function POST(req: NextRequest) {
 
   // Teléfono para el turno y para enviar el WA:
   // - "para mí" con token       → teléfono del token
-  // - "para mí" directo         → body.telefono
-  // - "para otro" con teléfono  → body.telefono (número del otro)
+  // - "para mí" directo         → body.telefono normalizado al formato WA (549XXXXXXXXXX)
+  // - "para otro" con teléfono  → body.telefono normalizado
   // - "para otro" sin teléfono  → teléfono del token (notificamos al solicitante)
-  const telefonoTurno = body.telefono ?? telefonoToken
-  const telefonoNotif = body.telefono ?? telefonoToken   // a quien mandamos WA
+  const telefonoNorm = body.telefono ? normalizarTelAR(body.telefono) : undefined
+  const telefonoTurno = telefonoNorm ?? telefonoToken
+  const telefonoNotif = telefonoNorm ?? telefonoToken   // a quien mandamos WA
 
   if (!telefonoTurno)
     return NextResponse.json({ error: 'Teléfono requerido' }, { status: 400 })
