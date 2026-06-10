@@ -71,9 +71,10 @@ export function MonthlyCalendar({ turnos, mes, onMesChange, onTurnosChange }: Pr
         </button>
       </div>
 
-      <div className="flex gap-4 flex-1 min-h-0">
+      {/* Mobile: columna (grid arriba, panel abajo). Desktop: lado a lado */}
+      <div className="flex flex-col md:flex-row gap-3 md:gap-4 flex-1 min-h-0">
         {/* Grid */}
-        <div className="flex-1 overflow-auto rounded-xl border border-outline-variant bg-surface-card">
+        <div className="flex-1 overflow-auto rounded-xl border border-outline-variant bg-surface-card" style={{ minHeight: 0 }}>
           <div className="grid grid-cols-7 min-w-[420px]">
             {/* Day headers */}
             {DIAS_HEADER.map(d => (
@@ -128,10 +129,10 @@ export function MonthlyCalendar({ turnos, mes, onMesChange, onTurnosChange }: Pr
           </div>
         </div>
 
-        {/* Side panel — turnos del día */}
+        {/* Panel de día — ancho completo en mobile, fijo en desktop */}
         <div
-          className="w-64 flex-shrink-0 rounded-xl border border-outline-variant overflow-hidden flex flex-col"
-          style={{ background: 'var(--glass-bg)', backdropFilter: `blur(var(--glass-blur))` }}
+          className="w-full md:w-64 flex-shrink-0 rounded-xl border border-outline-variant overflow-hidden flex flex-col"
+          style={{ background: 'var(--glass-bg)', backdropFilter: `blur(var(--glass-blur))`, minHeight: selectedDay ? '200px' : '80px' }}
         >
           <div className="px-3 py-2.5 border-b border-outline-variant">
             <p className="text-xs font-semibold text-text-p">

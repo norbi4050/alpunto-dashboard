@@ -74,16 +74,16 @@ export default async function AnalyticsPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <Topbar title="Reportes" subtitle={`${titleDate} · Datos en tiempo real`} />
-      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-5">
+      <div className="flex-1 overflow-y-auto p-3 md:p-6 flex flex-col gap-4 md:gap-5">
 
         {/* ROI Hero */}
-        <div className="relative bg-surface-card border border-border-primary rounded-2xl p-6 overflow-visible">
+        <div className="relative bg-surface-card border border-border-primary rounded-2xl p-4 md:p-6 overflow-hidden">
           <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full opacity-20 blur-3xl" style={{ background: 'var(--primary)' }} />
           <p className="text-[10px] font-semibold text-stitch-primary uppercase tracking-widest mb-1">Impacto Financiero</p>
-          <p className="text-sm text-text-s mb-4">Ingreso estimado vs costo mensual del sistema</p>
-          <div className="flex items-end gap-6">
-            <div className="bg-surface-container-low rounded-xl px-6 py-3 relative z-10">
-              <span className="text-5xl font-bold font-mono text-stitch-secondary">{roi}×</span>
+          <p className="text-xs text-text-s mb-3">Ingreso estimado vs costo mensual del sistema</p>
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="bg-surface-container-low rounded-xl px-4 md:px-6 py-3 relative z-10">
+              <span className="text-4xl md:text-5xl font-bold font-mono text-stitch-secondary">{roi}×</span>
             </div>
             <div className="flex flex-col gap-1 text-xs text-text-s relative z-10">
               <span><span className="font-semibold text-text-p">{asistidos}</span> atendidos × ${valorCorte.toLocaleString('es-AR')}</span>
@@ -94,14 +94,14 @@ export default async function AnalyticsPage() {
         </div>
 
         {/* 4 métricas clave */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { label: 'Tasa de cancelación', value: `${cancelRate}%`, sub: 'Este mes', color: 'text-sw-text' },
-            { label: 'Turnos confirmados', value: confirmados, sub: 'Sin intervención humana', color: 'text-si-text' },
+            { label: 'Turnos confirmados', value: confirmados, sub: 'Sin intervención', color: 'text-si-text' },
             { label: 'Turnos asistidos', value: asistidos, sub: 'Completados', color: 'text-ss-text' },
             { label: 'Clientes nuevos', value: clientesNuevos, sub: 'Este mes', color: 'text-text-p' },
           ].map(m => (
-            <div key={m.label} className="bg-surface-card border border-outline-variant rounded-xl p-4">
+            <div key={m.label} className="bg-surface-card border border-outline-variant rounded-xl p-3 md:p-4">
               <p className="text-[10px] text-text-m font-medium leading-tight mb-2">{m.label}</p>
               <p className={`text-2xl font-bold font-mono ${m.color}`}>{m.value}</p>
               <p className="text-[10px] text-text-m mt-1">{m.sub}</p>
@@ -110,26 +110,26 @@ export default async function AnalyticsPage() {
         </div>
 
         {/* Bar charts */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <BarChart
             title="Turnos por semana"
             bars={semanas.map(s => ({ label: s.semana, value: s.total, color: 'bg-si-text' }))}
           />
           <BarChart
-            title="Turnos confirmados por barbero (este mes)"
+            title="Confirmados por barbero"
             bars={porBarbero.map(b => ({ label: b.nombre.split(' ')[0], value: b.count, color: 'bg-ss-text' }))}
           />
         </div>
 
         {/* Resumen actividad bot */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
           {[
-            { label: 'Total turnos gestionados', val: total, sub: 'Por BarberBot' },
+            { label: 'Total gestionados', val: total, sub: 'Por BarberBot' },
             { label: 'Cancelaciones', val: cancelados, sub: 'Auto o manual' },
             { label: 'Tiempo respuesta', val: '~3s', sub: 'vs. horas sin bot' },
-            { label: 'Completaron el flujo', val: `${total > 0 ? Math.round(((confirmados + asistidos) / total) * 100) : 0}%`, sub: 'Del total iniciado' },
+            { label: 'Completaron flujo', val: `${total > 0 ? Math.round(((confirmados + asistidos) / total) * 100) : 0}%`, sub: 'Del total iniciado' },
           ].map(s => (
-            <div key={s.label} className="bg-surface-card border border-outline-variant rounded-xl p-4">
+            <div key={s.label} className="bg-surface-card border border-outline-variant rounded-xl p-3">
               <p className="text-[10px] text-text-m font-medium leading-tight">{s.label}</p>
               <p className="text-2xl font-bold font-mono text-text-p mt-1">{s.val}</p>
               <p className="text-[10px] text-text-m mt-0.5">{s.sub}</p>

@@ -12,6 +12,7 @@ export default async function ConfiguracionLayout({ children }: { children: Reac
     redirect('/login')
   }
   if (!user) redirect('/login')
-  if (getRole(user.user_metadata) !== 'dueno') redirect('/dashboard')
+  const role = getRole(user.user_metadata)
+  if (role !== 'dueno' && role !== 'admin') redirect('/dashboard')
   return <>{children}</>
 }

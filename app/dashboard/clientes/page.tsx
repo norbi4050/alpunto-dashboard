@@ -55,8 +55,59 @@ export default async function ClientesPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <Topbar title="Clientes" subtitle={`${lista.length} cliente${lista.length !== 1 ? 's' : ''} registrado${lista.length !== 1 ? 's' : ''}`} />
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="bg-surface-card border border-outline-variant rounded-xl overflow-hidden">
+      <div className="flex-1 overflow-y-auto p-3 md:p-6">
+
+        {/* ── MOBILE: cards ─────────────────────────────────────── */}
+        <div className="md:hidden flex flex-col gap-2">
+          {lista.length === 0 ? (
+            <p className="text-center py-8 text-[12px] text-text-m">Sin clientes registrados.</p>
+          ) : lista.map(c => {
+            const fechas = visitasPorCliente[c.id] ?? []
+            const frecDias = calcFrecuencia(fechas)
+            let proximaEst: Date | null = null
+            if (frecDias && c.ultima_visita) {
+              proximaEst = new Date(new Date(c.ultima_visita).getTime() + frecDias * 86_400_000)
+            }
+            const proximaVencida = proximaEst && proximaEst < hoy
+            return (
+              <div key={c.id} className="bg-surface-card border border-outline-variant rounded-xl p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="text-sm font-semibold text-text-p">{c.nombre}</p>
+                    <p className="text-xs text-text-m font-mono mt-0.5">{c.whatsapp}</p>
+                  </div>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 ${
+                    c.opt_in_promo ? 'bg-ss-bg text-ss-text border border-border-success' : 'bg-surface-container text-text-m border border-outline-variant'
+                  }`}>{c.opt_in_promo ? 'Promos ✓' : 'Sin promos'}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="bg-surface-container rounded-lg p-2 text-center">
+                    <p className="text-[10px] text-text-m">Visitas</p>
+                    <p className="text-base font-bold text-text-p">{c.visitas ?? 0}</p>
+                  </div>
+                  <div className="bg-surface-container rounded-lg p-2 text-center">
+                    <p className="text-[10px] text-text-m">Frecuencia</p>
+                    <p className="text-base font-bold text-si-text">{frecDias ? `~${frecDias}d` : '—'}</p>
+                  </div>
+                  <div className="bg-surface-container rounded-lg p-2 text-center">
+                    <p className="text-[10px] text-text-m">Próx. estimada</p>
+                    <p className={`text-xs font-semibold ${proximaVencida ? 'text-sw-text' : 'text-text-s'}`}>
+                      {proximaEst ? `${proximaEst.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}${proximaVencida ? ' ⚠' : ''}` : '—'}
+                    </p>
+                  </div>
+                </div>
+                {c.ultima_visita && (
+                  <p className="text-[10px] text-text-m mt-2">
+                    Última visita: {new Date(c.ultima_visita).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* ── DESKTOP: tabla ────────────────────────────────────── */}
+        <div className="hidden md:block bg-surface-card border border-outline-variant rounded-xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-outline-variant">
@@ -71,9 +122,7 @@ export default async function ClientesPage() {
             </thead>
             <tbody>
               {lista.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-m">Sin clientes registrados.</td>
-                </tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-m">Sin clientes registrados.</td></tr>
               ) : lista.map((c, i) => {
                 const fechas = visitasPorCliente[c.id] ?? []
                 const frecDias = calcFrecuencia(fechas)
@@ -82,36 +131,26 @@ export default async function ClientesPage() {
                   proximaEst = new Date(new Date(c.ultima_visita).getTime() + frecDias * 86_400_000)
                 }
                 const proximaVencida = proximaEst && proximaEst < hoy
-
                 return (
                   <tr key={c.id} className={`border-b border-outline-variant/50 hover:bg-surface-container transition-colors ${i % 2 === 0 ? '' : 'bg-surface-container/30'}`}>
                     <td className="px-4 py-3 text-[12px] font-semibold text-text-p">{c.nombre}</td>
                     <td className="px-4 py-3 text-[12px] text-text-s font-mono">{c.whatsapp}</td>
                     <td className="px-4 py-3 text-[12px] text-text-s">{c.visitas ?? 0}</td>
                     <td className="px-4 py-3 text-[12px] text-text-s">
-                      {c.ultima_visita
-                        ? new Date(c.ultima_visita).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                        : '—'}
+                      {c.ultima_visita ? new Date(c.ultima_visita).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
                     </td>
-                    <td className="px-4 py-3 text-[12px] text-text-s">
-                      {frecDias
-                        ? <span className="text-si-text font-semibold">~{frecDias}d</span>
-                        : <span className="text-text-m">—</span>}
+                    <td className="px-4 py-3 text-[12px]">
+                      {frecDias ? <span className="text-si-text font-semibold">~{frecDias}d</span> : <span className="text-text-m">—</span>}
                     </td>
                     <td className="px-4 py-3 text-[12px]">
                       {proximaEst
                         ? <span className={proximaVencida ? 'text-sw-text font-semibold' : 'text-text-s'}>
-                            {proximaEst.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                            {proximaVencida && ' ⚠'}
+                            {proximaEst.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}{proximaVencida && ' ⚠'}
                           </span>
                         : <span className="text-text-m">—</span>}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
-                        c.opt_in_promo
-                          ? 'bg-ss-bg text-ss-text border border-border-success'
-                          : 'bg-surface-container text-text-m border border-outline-variant'
-                      }`}>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${c.opt_in_promo ? 'bg-ss-bg text-ss-text border border-border-success' : 'bg-surface-container text-text-m border border-outline-variant'}`}>
                         {c.opt_in_promo ? 'Sí' : 'No'}
                       </span>
                     </td>
@@ -123,13 +162,9 @@ export default async function ClientesPage() {
         </div>
 
         {/* Leyenda */}
-        <div className="mt-3 flex items-center gap-4">
-          <p className="text-[10px] text-text-m">
-            <span className="text-si-text font-semibold">~Nd</span> = promedio de días entre visitas
-          </p>
-          <p className="text-[10px] text-text-m">
-            <span className="text-sw-text font-semibold">⚠</span> = próxima visita estimada ya pasó — candidato para promo
-          </p>
+        <div className="mt-3 flex flex-wrap items-center gap-3 md:gap-4">
+          <p className="text-[10px] text-text-m"><span className="text-si-text font-semibold">~Nd</span> = promedio de días entre visitas</p>
+          <p className="text-[10px] text-text-m"><span className="text-sw-text font-semibold">⚠</span> = próxima visita ya pasó — candidato para promo</p>
         </div>
       </div>
     </div>
