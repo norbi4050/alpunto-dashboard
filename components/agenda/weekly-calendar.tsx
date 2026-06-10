@@ -131,7 +131,7 @@ export function WeeklyCalendar({
   turnos: initialTurnos,
   bloqueos: initialBloqueos,
   horarios,
-  duracionMin = 30,
+  duracionMin = 40,
   barberoId,
   desde,
   readOnly = false,
@@ -144,7 +144,7 @@ export function WeeklyCalendar({
   const [addForm, setAddForm] = useState({ hora_inicio: '09:00', hora_fin: '10:00' })
   const [loadingKey, setLoadingKey] = useState<string | null>(null)
 
-  const dur = duracionMin || 30
+  const dur = duracionMin || 40
   const desdeDate = new Date(desde)
   const dias = Array.from({ length: 7 }, (_, i) => addDays(desdeDate, i))
   const yAxis = buildYAxis(horarios, dur)
