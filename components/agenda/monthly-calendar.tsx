@@ -114,10 +114,11 @@ export function MonthlyCalendar({ turnos, mes, onMesChange, onTurnosChange }: Pr
                       <span className="text-[9px] font-semibold text-text-m">{count}</span>
                     )}
                   </div>
-                  {/* Dots por turno (max 4 visibles) */}
+                  {/* Dots por turno — color del barbero */}
                   <div className="flex flex-wrap gap-0.5">
                     {dayTs.slice(0, 6).map(t => (
-                      <span key={t.id} className={`w-1.5 h-1.5 rounded-full ${estadoColor(t.estado)}`} />
+                      <span key={t.id} className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                        style={{ background: (t as any).barberos?.color ?? '#6b7280' }} />
                     ))}
                     {dayTs.length > 6 && (
                       <span className="text-[8px] text-text-m">+{dayTs.length - 6}</span>
@@ -171,10 +172,14 @@ export function MonthlyCalendar({ turnos, mes, onMesChange, onTurnosChange }: Pr
                   className="w-full px-3 py-2 border-b border-outline-variant/30 hover:bg-surface-container/40 transition-colors text-left"
                 >
                   <div className="flex items-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${estadoColor(t.estado)}`} />
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                      style={{ background: (t as any).barberos?.color ?? '#6b7280' }} />
                     <span className="text-[10px] font-mono font-semibold text-text-p">
                       {format(new Date(t.fecha_hora), 'HH:mm')}
                     </span>
+                    {(t as any).barberos?.nombre && (
+                      <span className="text-[9px] text-text-m truncate">{(t as any).barberos.nombre}</span>
+                    )}
                   </div>
                   <p className="text-[11px] font-medium text-text-p mt-0.5 truncate">
                     {t.clientes?.nombre ?? '—'}
