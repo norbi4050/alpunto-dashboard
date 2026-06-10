@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState, Fragment } from 'react'
 import { format, addDays, getDay, isToday } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -14,12 +14,14 @@ export interface Bloqueo {
   motivo: string | null
 }
 
+interface BarberoProp { id: string; slot: number; nombre: string; color: string; activo: boolean }
+
 type SlotStatus = 'libre' | 'ocupado' | 'bloqueado_horas' | 'fuera_horario'
 
 interface GridSlot {
   hora: string
   status: SlotStatus
-  turno?: Turno
+  turnos?: Turno[]
   bloqueoId?: string
 }
 
@@ -59,16 +61,22 @@ function buildDiaGrid(
   duracionMin: number,
 ): DiaGrid {
   const fechaStr = format(dia, 'yyyy-MM-dd')
-  const diaSemana = getDay(dia)  // 0=Dom, 1=Lun, ..., 6=Sáb
+  const diaSemana = getDay(dia)
   const horariosDelDia = horarios.filter(h => h.dia_semana === diaSemana)
   const blqDia = bloqueos.filter(b => b.fecha === fechaStr)
   const blqCompleto = blqDia.find(b => b.hora_inicio === null)
   const blqHoras = blqDia.filter(b => b.hora_inicio !== null)
 
-  const ocupados = new Map<string, Turno>()
+  // Acumular TODOS los turnos por slot (puede haber varios barberos a la misma hora)
+  const ocupados = new Map<string, Turno[]>()
   turnos
     .filter(t => format(new Date(t.fecha_hora), 'yyyy-MM-dd') === fechaStr)
-    .forEach(t => ocupados.set(format(new Date(t.fecha_hora), 'HH:mm'), t))
+    .forEach(t => {
+      const hora = format(new Date(t.fecha_hora), 'HH:mm')
+      const arr = ocupados.get(hora) ?? []
+      arr.push(t)
+      ocupados.set(hora, arr)
+    })
 
   const slots: GridSlot[] = yAxis.map(hora => {
     const hMin = timeToMin(hora)
@@ -86,7 +94,7 @@ function buildDiaGrid(
     })
     if (blq) return { hora, status: 'bloqueado_horas', bloqueoId: blq.id }
 
-    if (ocupados.has(hora)) return { hora, status: 'ocupado', turno: ocupados.get(hora) }
+    if (ocupados.has(hora)) return { hora, status: 'ocupado', turnos: ocupados.get(hora) }
     return { hora, status: 'libre' }
   })
 
@@ -95,9 +103,15 @@ function buildDiaGrid(
     fechaStr,
     isNoLaboral: horariosDelDia.length === 0,
     isDiaBloqueado: !!blqCompleto,
-    turnoCount: ocupados.size,
+    turnoCount: Array.from(ocupados.values()).reduce((s, arr) => s + arr.length, 0),
     slots,
   }
+}
+
+// Devuelve el color de fondo y borde para un turno dado su barbero
+function turnoColor(t: Turno): { bg: string; border: string } {
+  const hex = (t as Turno & { barberos?: { color?: string } }).barberos?.color ?? '#6366f1'
+  return { bg: `${hex}26`, border: hex }
 }
 
 interface Props {
@@ -106,7 +120,9 @@ interface Props {
   horarios: Horario[]
   duracionMin?: number
   barberoId: string
+  barberos?: BarberoProp[]
   desde: string
+  readOnly?: boolean
 }
 
 const ROW_H = 44
@@ -118,6 +134,7 @@ export function WeeklyCalendar({
   duracionMin = 30,
   barberoId,
   desde,
+  readOnly = false,
 }: Props) {
   const [turnos, setTurnos] = useState<Turno[]>(initialTurnos)
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>(initialBloqueos)
@@ -134,6 +151,7 @@ export function WeeklyCalendar({
   const diaGrids = dias.map(dia => buildDiaGrid(dia, yAxis, horarios, turnos, bloqueos, dur))
 
   async function bloquearDia(dg: DiaGrid) {
+    if (!barberoId) return
     if (!window.confirm(`¿Bloquear ${format(dg.fecha, "EEEE d 'de' MMMM", { locale: es })}?`)) return
     setLoadingKey(`dia-${dg.fechaStr}`)
     const res = await fetch('/api/agenda/bloqueos', {
@@ -162,7 +180,7 @@ export function WeeklyCalendar({
   }
 
   async function agregarBloqueoHoras(fechaStr: string) {
-    if (addForm.hora_inicio >= addForm.hora_fin) return
+    if (!barberoId || addForm.hora_inicio >= addForm.hora_fin) return
     setLoadingKey(`add-${fechaStr}`)
     try {
       const res = await fetch('/api/agenda/bloqueos', {
@@ -220,40 +238,42 @@ export function WeeklyCalendar({
                     </span>
                   )}
                 </p>
-                <div className="flex gap-1.5 items-center mt-auto">
-                  {dg.isDiaBloqueado ? (
-                    <button
-                      onClick={() => habilitarDia(dg)}
-                      disabled={loadingKey === `habilitar-${dg.fechaStr}`}
-                      className="text-[9px] text-se-text font-semibold hover:underline disabled:opacity-50"
-                    >
-                      Habilitar
-                    </button>
-                  ) : !dg.isNoLaboral ? (
-                    <>
+                {!readOnly && (
+                  <div className="flex gap-1.5 items-center mt-auto">
+                    {dg.isDiaBloqueado ? (
                       <button
-                        onClick={() => bloquearDia(dg)}
-                        disabled={!!loadingKey}
-                        title="Bloquear día completo"
-                        className="text-[9px] text-text-m hover:text-se-text transition-colors disabled:opacity-50"
+                        onClick={() => habilitarDia(dg)}
+                        disabled={loadingKey === `habilitar-${dg.fechaStr}`}
+                        className="text-[9px] text-se-text font-semibold hover:underline disabled:opacity-50"
                       >
-                        ⊘
+                        Habilitar
                       </button>
-                      <button
-                        onClick={() => { setAddingDia(dg.fechaStr); setAddForm({ hora_inicio: '09:00', hora_fin: '10:00' }) }}
-                        title="Bloquear rango de horas"
-                        className="text-[9px] text-text-m hover:text-sw-text transition-colors"
-                      >
-                        +blq
-                      </button>
-                    </>
-                  ) : null}
-                </div>
+                    ) : !dg.isNoLaboral ? (
+                      <>
+                        <button
+                          onClick={() => bloquearDia(dg)}
+                          disabled={!!loadingKey}
+                          title="Bloquear día completo"
+                          className="text-[9px] text-text-m hover:text-se-text transition-colors disabled:opacity-50"
+                        >
+                          ⊘
+                        </button>
+                        <button
+                          onClick={() => { setAddingDia(dg.fechaStr); setAddForm({ hora_inicio: '09:00', hora_fin: '10:00' }) }}
+                          title="Bloquear rango de horas"
+                          className="text-[9px] text-text-m hover:text-sw-text transition-colors"
+                        >
+                          +blq
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+                )}
               </div>
             )
           })}
 
-          {/* EMPTY STATE — sin horarios cargados */}
+          {/* EMPTY STATE */}
           {yAxis.length === 0 && (
             <>
               <div className="border-r border-outline-variant" style={{ height: 120 }} />
@@ -297,26 +317,42 @@ export function WeeklyCalendar({
                   <div
                     key={dg.fechaStr}
                     style={{ height: ROW_H }}
-                    onClick={() => setNuevoSlot({ fecha: dg.fechaStr, hora })}
-                    className="border-b border-r border-outline-variant/30 border-l-[2px] border-l-border-success/30 bg-ss-bg/10 hover:bg-ss-bg/40 cursor-pointer transition-colors flex items-center px-1.5"
+                    onClick={() => !readOnly && setNuevoSlot({ fecha: dg.fechaStr, hora })}
+                    className={`border-b border-r border-outline-variant/30 border-l-[2px] border-l-border-success/30 bg-ss-bg/10 transition-colors flex items-center px-1.5 ${!readOnly ? 'hover:bg-ss-bg/40 cursor-pointer' : ''}`}
                   >
-                    <span className="text-[9px] text-ss-text/50 font-mono">{hora}</span>
+                    {!readOnly && <span className="text-[9px] text-ss-text/50 font-mono">{hora}</span>}
                   </div>
                 )
 
-                if (slot.status === 'ocupado' && slot.turno) return (
-                  <div
-                    key={dg.fechaStr}
-                    style={{ height: ROW_H }}
-                    onClick={() => setSelected(slot.turno!)}
-                    className="border-b border-r border-outline-variant/30 bg-si-bg hover:brightness-110 cursor-pointer transition-all px-1.5 py-0.5 overflow-hidden"
-                  >
-                    <p className="text-[9px] font-mono font-bold text-si-text leading-tight">{hora}</p>
-                    <p className="text-[10px] text-on-surface font-medium truncate leading-tight">
-                      {slot.turno.clientes?.nombre ?? '—'}
-                    </p>
-                  </div>
-                )
+                if (slot.status === 'ocupado' && slot.turnos?.length) {
+                  const ts = slot.turnos
+                  return (
+                    <div
+                      key={dg.fechaStr}
+                      style={{ height: ROW_H }}
+                      className="border-b border-r border-outline-variant/30 overflow-hidden px-0.5 py-0.5 flex flex-col gap-0.5"
+                    >
+                      {ts.map(t => {
+                        const { bg, border } = turnoColor(t)
+                        return (
+                          <div
+                            key={t.id}
+                            onClick={() => setSelected(t)}
+                            style={{ background: bg, borderLeft: `3px solid ${border}` }}
+                            className="flex-1 min-h-0 cursor-pointer hover:brightness-110 transition-all px-1 rounded-sm overflow-hidden flex flex-col justify-center"
+                          >
+                            <p className="text-[9px] font-mono font-bold leading-none truncate" style={{ color: border }}>
+                              {hora}
+                            </p>
+                            <p className="text-[9px] text-on-surface font-medium truncate leading-tight">
+                              {t.clientes?.nombre ?? '—'}
+                            </p>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                }
 
                 if (slot.status === 'bloqueado_horas') return (
                   <div
@@ -325,7 +361,7 @@ export function WeeklyCalendar({
                     className="border-b border-r border-outline-variant/30 bg-se-bg/15 px-1.5 flex items-center justify-between"
                   >
                     <span className="text-[9px] text-se-text/60 font-medium">Bloq.</span>
-                    {slot.bloqueoId && (
+                    {!readOnly && slot.bloqueoId && (
                       <button
                         onClick={() => eliminarBloqueo(slot.bloqueoId!)}
                         disabled={loadingKey === `del-${slot.bloqueoId}`}
@@ -344,8 +380,8 @@ export function WeeklyCalendar({
         </div>
       </div>
 
-      {/* Modal bloqueo de horas */}
-      {addingDia && (
+      {/* Modal bloqueo de horas — solo en vista individual */}
+      {!readOnly && addingDia && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setAddingDia(null)}>
           <div
             className="bg-surface-card border border-outline-variant rounded-xl p-4 w-64 flex flex-col gap-3 shadow-xl"
@@ -391,7 +427,7 @@ export function WeeklyCalendar({
           onCancelled={id => { setTurnos(prev => prev.filter(t => t.id !== id)); setSelected(null) }}
         />
       )}
-      {nuevoSlot && (
+      {!readOnly && nuevoSlot && (
         <NuevoTurnoModal
           onClose={() => setNuevoSlot(null)}
           defaultFecha={nuevoSlot.fecha}

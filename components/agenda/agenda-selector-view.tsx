@@ -12,6 +12,8 @@ interface Props { barberos: BarberoProp[] }
 
 type Vista = 'semana' | 'mes'
 
+const TODOS = '__todos__'
+
 export function AgendaSelectorView({ barberos }: Props) {
   const [barberoId, setBarberoId] = useState(barberos[0]?.id ?? '')
   const [vista, setVista] = useState<Vista>('semana')
@@ -23,6 +25,7 @@ export function AgendaSelectorView({ barberos }: Props) {
 
   const desde = startOfDay(new Date())
   const hasta = addDays(desde, 7)
+  const isTodos = barberoId === TODOS
 
   useEffect(() => {
     if (!barberoId) return
@@ -30,51 +33,72 @@ export function AgendaSelectorView({ barberos }: Props) {
     const supabase = createClient()
 
     if (vista === 'semana') {
-      Promise.all([
-        supabase
-          .from('turnos')
-          .select('*, clientes(nombre,whatsapp), barberos(nombre,slot,color)')
-          .eq('barbero_id', barberoId)
-          .gte('fecha_hora', desde.toISOString())
-          .lt('fecha_hora', hasta.toISOString())
-          .not('estado', 'in', '("cancelado","auto_cancelado")')
-          .order('fecha_hora', { ascending: true }),
-        supabase
-          .from('bloqueos')
-          .select('*')
-          .eq('barbero_id', barberoId)
-          .gte('fecha', format(desde, 'yyyy-MM-dd'))
-          .lte('fecha', format(hasta, 'yyyy-MM-dd')),
-        supabase
-          .from('horarios_barbero')
-          .select('id, dia_semana, hora_inicio, hora_fin')
-          .eq('barbero_id', barberoId),
-      ]).then(([turnosRes, bloqueosRes, horariosRes]) => {
-        setTurnos((turnosRes.data ?? []) as Turno[])
-        setBloqueos((bloqueosRes.data ?? []) as Bloqueo[])
-        setHorarios((horariosRes.data ?? []) as Horario[])
-        setLoading(false)
-      })
+      if (isTodos) {
+        // Fetch todos los barberos sin filtro
+        Promise.all([
+          supabase
+            .from('turnos')
+            .select('*, clientes(nombre,whatsapp), barberos(nombre,slot,color)')
+            .gte('fecha_hora', desde.toISOString())
+            .lt('fecha_hora', hasta.toISOString())
+            .not('estado', 'in', '("cancelado","auto_cancelado")')
+            .order('fecha_hora', { ascending: true }),
+          supabase
+            .from('horarios_barbero')
+            .select('id, barbero_id, dia_semana, hora_inicio, hora_fin')
+            .eq('activo', true),
+        ]).then(([turnosRes, horariosRes]) => {
+          setTurnos((turnosRes.data ?? []) as Turno[])
+          setBloqueos([]) // en vista todos no bloqueamos días
+          setHorarios((horariosRes.data ?? []) as Horario[])
+          setLoading(false)
+        })
+      } else {
+        Promise.all([
+          supabase
+            .from('turnos')
+            .select('*, clientes(nombre,whatsapp), barberos(nombre,slot,color)')
+            .eq('barbero_id', barberoId)
+            .gte('fecha_hora', desde.toISOString())
+            .lt('fecha_hora', hasta.toISOString())
+            .not('estado', 'in', '("cancelado","auto_cancelado")')
+            .order('fecha_hora', { ascending: true }),
+          supabase
+            .from('bloqueos')
+            .select('*')
+            .eq('barbero_id', barberoId)
+            .gte('fecha', format(desde, 'yyyy-MM-dd'))
+            .lte('fecha', format(hasta, 'yyyy-MM-dd')),
+          supabase
+            .from('horarios_barbero')
+            .select('id, barbero_id, dia_semana, hora_inicio, hora_fin')
+            .eq('barbero_id', barberoId),
+        ]).then(([turnosRes, bloqueosRes, horariosRes]) => {
+          setTurnos((turnosRes.data ?? []) as Turno[])
+          setBloqueos((bloqueosRes.data ?? []) as Bloqueo[])
+          setHorarios((horariosRes.data ?? []) as Horario[])
+          setLoading(false)
+        })
+      }
     } else {
-      // Vista mensual — todos los barberos (o el seleccionado)
       const mesDesde = startOfMonth(mes)
       const mesHasta = endOfMonth(mes)
-      supabase
+      const query = supabase
         .from('turnos')
         .select('*, clientes(nombre,whatsapp), barberos(nombre,slot,color)')
-        .eq('barbero_id', barberoId)
         .gte('fecha_hora', mesDesde.toISOString())
         .lte('fecha_hora', mesHasta.toISOString())
         .order('fecha_hora', { ascending: true })
-        .then(({ data }) => {
-          setTurnos((data ?? []) as Turno[])
-          setLoading(false)
-        })
+      if (!isTodos) query.eq('barbero_id', barberoId)
+      query.then(({ data }) => {
+        setTurnos((data ?? []) as Turno[])
+        setLoading(false)
+      })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [barberoId, vista, mes])
 
-  const barbero = barberos.find(b => b.id === barberoId)
+  const barbero = isTodos ? null : barberos.find(b => b.id === barberoId)
 
   return (
     <div className="flex flex-col h-full gap-4">
@@ -86,13 +110,22 @@ export function AgendaSelectorView({ barberos }: Props) {
           onChange={e => setBarberoId(e.target.value)}
           className="bg-surface-container border border-outline-variant rounded-lg px-3 py-2 text-sm text-on-surface outline-none focus:border-border-primary transition-colors"
         >
+          <option value={TODOS}>Todos</option>
           {barberos.map(b => (
             <option key={b.id} value={b.id}>{b.nombre}</option>
           ))}
         </select>
-        {barbero && (
+
+        {/* Dot de color del barbero seleccionado, o dots de todos */}
+        {isTodos ? (
+          <div className="flex gap-1">
+            {barberos.map(b => (
+              <span key={b.id} className="w-2.5 h-2.5 rounded-full" style={{ background: b.color }} title={b.nombre} />
+            ))}
+          </div>
+        ) : barbero ? (
           <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: barbero.color }} />
-        )}
+        ) : null}
 
         {/* Vista toggle */}
         <div className="ml-auto flex items-center gap-1 bg-surface-container rounded-lg p-0.5">
@@ -113,19 +146,21 @@ export function AgendaSelectorView({ barberos }: Props) {
         {loading && <span className="text-xs text-text-m">Cargando…</span>}
       </div>
 
-      {barbero && !loading && vista === 'semana' && (
+      {!loading && vista === 'semana' && (
         <div className="flex-1 min-h-0">
           <WeeklyCalendar
             turnos={turnos}
             bloqueos={bloqueos}
             horarios={horarios}
-            barberoId={barberoId}
+            barberoId={isTodos ? '' : barberoId}
+            barberos={barberos}
             desde={desde.toISOString()}
+            readOnly={isTodos}
           />
         </div>
       )}
 
-      {barbero && !loading && vista === 'mes' && (
+      {!loading && vista === 'mes' && (
         <div className="flex-1 min-h-0">
           <MonthlyCalendar
             turnos={turnos}
