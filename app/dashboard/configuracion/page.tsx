@@ -333,7 +333,13 @@ export default function ConfiguracionPage() {
                     : servicios.map(s => (
                       <div key={s.id} className="flex items-center gap-3 p-3 rounded-lg bg-surface-card border border-outline-variant">
                         <div className="flex-1 min-w-0">
-                          <p className="text-[12px] font-semibold text-text-p">{s.nombre}</p>
+                          <input
+                            type="text"
+                            defaultValue={s.nombre}
+                            onBlur={e => { if (e.target.value.trim() && e.target.value !== s.nombre) actualizarServicio(s.id, 'nombre', e.target.value.trim()) }}
+                            className="w-full bg-transparent border-b border-outline-variant focus:border-stitch-primary outline-none text-[12px] font-semibold text-text-p mb-0.5"
+                            placeholder="Nombre del servicio"
+                          />
                           <div className="flex items-center gap-1 mt-0.5">
                             <input type="number" defaultValue={s.duracion_min} min="5" max="180"
                               onBlur={e => { const v = parseInt(e.target.value); if (!isNaN(v) && v !== s.duracion_min) actualizarServicio(s.id, 'duracion_min', v) }}
