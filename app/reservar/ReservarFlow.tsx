@@ -17,6 +17,21 @@ function fmtPrecio(n: number | null) {
   return `$${n.toLocaleString('es-AR')}`
 }
 
+// Auto-formatea a DD/MM/AAAA mientras el usuario tipea
+function autoFormatFecha(val: string) {
+  const d = val.replace(/\D/g, '')
+  if (d.length <= 2) return d
+  if (d.length <= 4) return `${d.slice(0,2)}/${d.slice(2)}`
+  return `${d.slice(0,2)}/${d.slice(2,4)}/${d.slice(4,8)}`
+}
+
+// Convierte DD/MM/AAAA → AAAA-MM-DD para Supabase
+function fechaToISO(val: string) {
+  const p = val.split('/')
+  if (p.length !== 3 || p[2].length !== 4) return ''
+  return `${p[2]}-${p[1]}-${p[0]}`
+}
+
 export function ReservarFlow({ token }: { token?: string }) {
   const [step, setStep]             = useState<Step>('loading')
   const [errorMsg, setErrorMsg]     = useState('')
@@ -122,7 +137,7 @@ export function ReservarFlow({ token }: { token?: string }) {
         token,
         nombre: nombreFinal,
         telefono: telefonoBody,
-        cumpleanos: !paraOtro && cumpleanos ? cumpleanos : undefined,
+        cumpleanos: !paraOtro && cumpleanos ? fechaToISO(cumpleanos) : undefined,
         para_otro: paraOtro,
         barbero_id: barberos[barberoIdx].id,
         barbero_nombre: barberos[barberoIdx].nombre,
@@ -201,7 +216,7 @@ export function ReservarFlow({ token }: { token?: string }) {
                     setStep(servicios.length > 0 && !servicio ? 'servicio' : 'datos')
                   }
                 }}
-                className="w-full bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-400 rounded-2xl px-5 py-4 text-left flex items-center gap-4 transition-all shadow-sm"
+                className="w-full bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-500 rounded-2xl px-5 py-4 text-left flex items-center gap-4 transition-all shadow-sm"
               >
                 <span className="text-2xl flex-shrink-0">👤</span>
                 <div>
@@ -219,7 +234,7 @@ export function ReservarFlow({ token }: { token?: string }) {
                   if (tipo === 'directo' && !servicio) setStep('servicio')
                   else setStep('datos')
                 }}
-                className="w-full bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-400 rounded-2xl px-5 py-4 text-left flex items-center gap-4 transition-all shadow-sm"
+                className="w-full bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-500 rounded-2xl px-5 py-4 text-left flex items-center gap-4 transition-all shadow-sm"
               >
                 <span className="text-2xl flex-shrink-0">👥</span>
                 <div>
@@ -244,7 +259,7 @@ export function ReservarFlow({ token }: { token?: string }) {
                     setServicio({ id: s.id, nombre: s.nombre, duracion: s.duracion_min, precio: s.precio })
                     setStep(paraOtro ? 'datos' : 'datos')
                   }}
-                  className="w-full bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-400 rounded-2xl px-4 py-4 text-left flex items-center justify-between transition-all shadow-sm"
+                  className="w-full bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-500 rounded-2xl px-4 py-4 text-left flex items-center justify-between transition-all shadow-sm"
                 >
                   <div>
                     <p className="font-semibold text-gray-900 text-sm">{s.nombre}</p>
@@ -280,7 +295,7 @@ export function ReservarFlow({ token }: { token?: string }) {
                     onChange={e => setNombreOtro(e.target.value)}
                     placeholder="Nombre de quien va"
                     autoFocus
-                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-900 transition-colors placeholder:text-gray-300 shadow-sm"
+                    className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-900 transition-colors placeholder:text-gray-300 shadow-sm"
                   />
                 </div>
                 <div>
@@ -293,13 +308,13 @@ export function ReservarFlow({ token }: { token?: string }) {
                     value={telefonoOtro}
                     onChange={e => setTelefonoOtro(e.target.value)}
                     placeholder="Ej: 3755 123456"
-                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-900 transition-colors placeholder:text-gray-300 shadow-sm"
+                    className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-900 transition-colors placeholder:text-gray-300 shadow-sm"
                   />
                 </div>
                 <div className="flex gap-3 mt-2">
                   <button
                     onClick={() => setStep('para_quien')}
-                    className="px-4 py-3 rounded-xl border border-gray-200 text-gray-500 text-sm font-medium hover:bg-gray-50 transition-colors"
+                    className="px-4 py-3 rounded-xl border border-gray-300 text-gray-500 text-sm font-medium hover:bg-gray-50 transition-colors"
                   >
                     ← Volver
                   </button>
@@ -322,7 +337,7 @@ export function ReservarFlow({ token }: { token?: string }) {
                     value={nombre}
                     onChange={e => setNombre(e.target.value)}
                     placeholder="Ej: Juan García"
-                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-900 transition-colors placeholder:text-gray-300 shadow-sm"
+                    className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-900 transition-colors placeholder:text-gray-300 shadow-sm"
                   />
                 </div>
                 {tipo === 'directo' && (
@@ -333,7 +348,7 @@ export function ReservarFlow({ token }: { token?: string }) {
                       value={telefonoDirecto}
                       onChange={e => setTelefonoDirecto(e.target.value)}
                       placeholder="Ej: 3755 123456"
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-900 transition-colors placeholder:text-gray-300 shadow-sm"
+                      className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-900 transition-colors placeholder:text-gray-300 shadow-sm"
                     />
                   </div>
                 )}
@@ -343,16 +358,19 @@ export function ReservarFlow({ token }: { token?: string }) {
                   </label>
                   <p className="text-[11px] text-[#c9a84c] font-medium mb-1.5">🎁 En tu cumpleaños te regalamos un corte gratis</p>
                   <input
-                    type="date"
+                    type="text"
                     value={cumpleanos}
-                    onChange={e => setCumpleanos(e.target.value)}
-                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none focus:border-gray-900 transition-colors shadow-sm"
+                    onChange={e => setCumpleanos(autoFormatFecha(e.target.value))}
+                    placeholder="DD/MM/AAAA"
+                    maxLength={10}
+                    inputMode="numeric"
+                    className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none focus:border-gray-900 transition-colors shadow-sm placeholder:text-gray-300"
                   />
                 </div>
                 <div className="flex gap-3 mt-2">
                   <button
                     onClick={() => setStep('para_quien')}
-                    className="px-4 py-3 rounded-xl border border-gray-200 text-gray-500 text-sm font-medium hover:bg-gray-50 transition-colors"
+                    className="px-4 py-3 rounded-xl border border-gray-300 text-gray-500 text-sm font-medium hover:bg-gray-50 transition-colors"
                   >
                     ← Volver
                   </button>
@@ -407,7 +425,7 @@ export function ReservarFlow({ token }: { token?: string }) {
                   className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border transition-all shadow-sm
                     ${barberoIdx === i
                       ? 'border-gray-900 bg-gray-900 text-white'
-                      : 'border-gray-200 bg-white text-gray-500 hover:border-gray-400'}`}
+                      : 'border-gray-300 bg-white text-gray-500 hover:border-gray-600'}`}
                 >
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: b.color }} />
                   {b.nombre}
@@ -424,7 +442,7 @@ export function ReservarFlow({ token }: { token?: string }) {
                   className={`flex-shrink-0 flex flex-col items-center px-3 py-2.5 rounded-xl border text-xs transition-all shadow-sm
                     ${fechaIdx === i
                       ? 'border-gray-900 bg-gray-900 text-white'
-                      : 'border-gray-200 bg-white text-gray-500 hover:border-gray-400'}`}
+                      : 'border-gray-300 bg-white text-gray-500 hover:border-gray-600'}`}
                 >
                   <span className="font-semibold text-[10px] uppercase opacity-70">{DIAS_SHORT[d.getDay()]}</span>
                   <span className="font-black text-lg leading-tight">{d.getDate()}</span>
@@ -451,7 +469,7 @@ export function ReservarFlow({ token }: { token?: string }) {
                           className={`py-2.5 rounded-xl text-sm font-bold border transition-all shadow-sm
                             ${slotSel?.hora === s.hora
                               ? 'border-gray-900 bg-gray-900 text-white'
-                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'}`}>
+                              : 'border-gray-300 bg-white text-gray-700 hover:border-gray-600'}`}>
                           {s.hora}
                         </button>
                       ))}
@@ -467,7 +485,7 @@ export function ReservarFlow({ token }: { token?: string }) {
                           className={`py-2.5 rounded-xl text-sm font-bold border transition-all shadow-sm
                             ${slotSel?.hora === s.hora
                               ? 'border-gray-900 bg-gray-900 text-white'
-                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'}`}>
+                              : 'border-gray-300 bg-white text-gray-700 hover:border-gray-600'}`}>
                           {s.hora}
                         </button>
                       ))}
