@@ -10,6 +10,7 @@ export interface Turno {
   estado: 'agendado' | 'confirmado' | 'cancelado' | 'auto_cancelado' | 'asistido' | 'no_show'
   clientes: { nombre: string; whatsapp: string | null } | null
   barberos: { nombre: string; slot: number; color: string } | null
+  servicios?: { duracion_min: number } | null
 }
 
 export interface Cliente {

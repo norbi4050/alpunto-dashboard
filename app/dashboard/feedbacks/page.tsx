@@ -42,7 +42,8 @@ export default async function FeedbacksPage() {
         title="Reseñas y Feedback"
         subtitle={`${total} total · ${noLeidos} sin leer${promedio ? ` · ⭐ ${promedio} promedio` : ''}`}
       />
-      <FeedbacksClient feedbacks={feedbacks ?? []} />
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <FeedbacksClient feedbacks={(feedbacks ?? []) as any} />
     </div>
   )
 }

@@ -16,13 +16,14 @@ export interface Bloqueo {
 
 interface BarberoProp { id: string; slot: number; nombre: string; color: string; activo: boolean }
 
-type SlotStatus = 'libre' | 'ocupado' | 'bloqueado_horas' | 'fuera_horario'
+type SlotStatus = 'libre' | 'ocupado' | 'ocupado_cont' | 'bloqueado_horas' | 'fuera_horario'
 
 interface GridSlot {
   hora: string
   status: SlotStatus
   turnos?: Turno[]
   bloqueoId?: string
+  contColor?: string   // color del turno que ocupa este slot como continuación
 }
 
 interface DiaGrid {
@@ -67,15 +68,32 @@ function buildDiaGrid(
   const blqCompleto = blqDia.find(b => b.hora_inicio === null)
   const blqHoras = blqDia.filter(b => b.hora_inicio !== null)
 
-  // Acumular TODOS los turnos por slot (puede haber varios barberos a la misma hora)
+  // ocupados: slot de inicio → turnos que arrancan en esa hora
   const ocupados = new Map<string, Turno[]>()
+  // continuaciones: slot de continuación → color del turno que lo ocupa
+  const continuaciones = new Map<string, string>()
+
   turnos
     .filter(t => format(new Date(t.fecha_hora), 'yyyy-MM-dd') === fechaStr)
     .forEach(t => {
-      const hora = format(new Date(t.fecha_hora), 'HH:mm')
-      const arr = ocupados.get(hora) ?? []
-      arr.push(t)
-      ocupados.set(hora, arr)
+      const startHora = format(new Date(t.fecha_hora), 'HH:mm')
+      const startMin  = timeToMin(startHora)
+      // Duración real del servicio (o duracionMin del calendario como fallback)
+      const dur = t.servicios?.duracion_min ?? duracionMin
+      const color = (t as Turno & { barberos?: { color?: string } }).barberos?.color ?? '#6366f1'
+
+      yAxis.forEach(hora => {
+        const slotMin = timeToMin(hora)
+        if (slotMin >= startMin && slotMin < startMin + dur) {
+          if (hora === startHora) {
+            // Slot de inicio: muestra la tarjeta del turno
+            ocupados.set(hora, [...(ocupados.get(hora) ?? []), t])
+          } else if (!ocupados.has(hora)) {
+            // Slot de continuación: bloque visual del mismo color
+            continuaciones.set(hora, color)
+          }
+        }
+      })
     })
 
   const slots: GridSlot[] = yAxis.map(hora => {
@@ -95,6 +113,7 @@ function buildDiaGrid(
     if (blq) return { hora, status: 'bloqueado_horas', bloqueoId: blq.id }
 
     if (ocupados.has(hora)) return { hora, status: 'ocupado', turnos: ocupados.get(hora) }
+    if (continuaciones.has(hora)) return { hora, status: 'ocupado_cont', contColor: continuaciones.get(hora) }
     return { hora, status: 'libre' }
   })
 
@@ -353,6 +372,18 @@ export function WeeklyCalendar({
                     </div>
                   )
                 }
+
+                if (slot.status === 'ocupado_cont') return (
+                  <div
+                    key={dg.fechaStr}
+                    style={{
+                      height: ROW_H,
+                      borderLeft: `3px solid ${slot.contColor ?? '#6366f1'}`,
+                      background: `${slot.contColor ?? '#6366f1'}18`,
+                    }}
+                    className="border-b border-r border-outline-variant/20"
+                  />
+                )
 
                 if (slot.status === 'bloqueado_horas') return (
                   <div

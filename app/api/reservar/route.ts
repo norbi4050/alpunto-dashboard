@@ -16,7 +16,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ tipo: 'directo', barberos: barberos ?? [], servicios: servicios ?? [] })
   }
 
-  // Flujo con token
+  // Token de prueba para desarrollo local (no toca Supabase)
+  if (token === 'DEV_TEST') {
+    const { data: barberos } = await supabase.from('barberos').select('id,nombre,color').eq('activo', true).order('nombre')
+    return NextResponse.json({
+      tipo: 'token',
+      token,
+      servicio: { id: null, nombre: 'Corte sin barba', duracion: 40, precio: 4500 },
+      barberos: barberos ?? [],
+      clienteExistente: { nombre: 'Carlos Test', fecha_nacimiento: null },
+    })
+  }
+
+  // Flujo con token real
   const { data: tk } = await supabase
     .from('reserva_tokens')
     .select('*')

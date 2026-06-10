@@ -25,18 +25,24 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('handoff_humano', true)
 
   const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString()
-  const { count: enVivoCount } = await supabase
-    .from('conversaciones')
-    .select('*', { count: 'exact', head: true })
-    .neq('estado', 'inicio')
-    .gte('updated_at', thirtyMinAgo)
+  const [{ count: enVivoCount }, { count: feedbacksCount }] = await Promise.all([
+    supabase
+      .from('conversaciones')
+      .select('*', { count: 'exact', head: true })
+      .neq('estado', 'inicio')
+      .gte('updated_at', thirtyMinAgo),
+    supabase
+      .from('feedbacks')
+      .select('*', { count: 'exact', head: true })
+      .eq('leido', false),
+  ])
 
   return (
     <div className="flex h-screen bg-[#0f1117] overflow-hidden">
       <Sidebar
         role={role}
         userName={userName}
-        badges={{ atenciones: atencionesCount ?? 0, enlivo: enVivoCount ?? 0 }}
+        badges={{ atenciones: atencionesCount ?? 0, enlivo: enVivoCount ?? 0, feedbacks: feedbacksCount ?? 0 }}
       />
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
         {children}

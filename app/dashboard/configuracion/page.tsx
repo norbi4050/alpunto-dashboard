@@ -341,12 +341,7 @@ export default function ConfiguracionPage() {
                             placeholder="Nombre del servicio"
                             title="Clic para editar el nombre"
                           />
-                          <div className="flex items-center gap-1 mt-0.5">
-                            <input type="number" defaultValue={s.duracion_min} min="5" max="180"
-                              onBlur={e => { const v = parseInt(e.target.value); if (!isNaN(v) && v !== s.duracion_min) actualizarServicio(s.id, 'duracion_min', v) }}
-                              className="w-12 bg-surface-container border border-outline-variant rounded px-1.5 py-0.5 text-[11px] text-on-surface outline-none focus:border-stitch-primary [appearance:textfield]" />
-                            <span className="text-[10px] text-text-m">min</span>
-                          </div>
+                          <span className="text-[10px] text-text-m mt-0.5 inline-block">40 min · slot fijo</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <span className="text-[11px] text-text-m">$</span>
