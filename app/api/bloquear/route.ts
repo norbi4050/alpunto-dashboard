@@ -94,11 +94,12 @@ export async function DELETE(req: Request) {
   return NextResponse.json({ ok: true })
 }
 
-// GET /api/bloquear — lista números bloqueados (solo dueno)
+// GET /api/bloquear — lista números bloqueados (dueno y admin)
 export async function GET() {
   const user = await getAuthedUser()
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  if (getRole(user.user_metadata) !== 'dueno') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const role = getRole(user.user_metadata)
+  if (role !== 'dueno' && role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const supabase = adminClient()
   const { data } = await supabase

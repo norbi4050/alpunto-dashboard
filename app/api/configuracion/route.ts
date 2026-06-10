@@ -20,7 +20,8 @@ export async function PATCH(req: Request) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  if (getRole(user.user_metadata) !== 'dueno') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const patchRole = getRole(user.user_metadata)
+  if (patchRole !== 'dueno' && patchRole !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const updates: Record<string, string> = await req.json()
   for (const [clave, valor] of Object.entries(updates)) {

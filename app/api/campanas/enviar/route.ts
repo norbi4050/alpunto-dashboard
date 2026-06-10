@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  if (getRole(user.user_metadata) !== 'dueno') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if ((getRole(user.user_metadata) !== 'dueno' && getRole(user.user_metadata) !== 'admin')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { campana_id } = await req.json()
   if (!campana_id) return NextResponse.json({ error: 'campana_id requerido' }, { status: 400 })
