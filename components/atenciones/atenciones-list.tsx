@@ -19,16 +19,16 @@ export function AtencionesList({ initial, selectedPhone, onSelect }: Props) {
 
   useEffect(() => {
     const supabase = createClient()
+    // Sin filtro — escucha CUALQUIER cambio en conversaciones para detectar
+    // tanto nuevas atenciones como cuando se cierra una (handoff_humano → false).
     const channel = supabase
       .channel('atenciones-realtime')
       .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'conversaciones',
-        filter: 'handoff_humano=eq.true'
+        event: '*', schema: 'public', table: 'conversaciones'
       }, () => {
-        Promise.resolve(supabase.from('conversaciones')
-          .select('*').eq('handoff_humano', true).order('updated_at', { ascending: false }))
+        void supabase.from('conversaciones')
+          .select('*').eq('handoff_humano', true).order('updated_at', { ascending: false })
           .then(({ data }) => { if (data) setItems(data as Conversacion[]) })
-          .catch(() => {})
       })
       .subscribe()
     return () => { supabase.removeChannel(channel) }

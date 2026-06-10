@@ -10,16 +10,16 @@ export default function AtencionesPage() {
   const [convs, setConvs] = useState<Conversacion[]>([])
   const [selectedConv, setSelectedConv] = useState<Conversacion | null>(null)
 
-  useEffect(() => {
+  const fetchConvs = () => {
     const supabase = createClient()
     supabase.from('conversaciones')
       .select('*')
       .eq('handoff_humano', true)
       .order('updated_at', { ascending: false })
-      .then(({ data }) => {
-        if (data) setConvs(data as Conversacion[])
-      })
-  }, [])
+      .then(({ data }) => { if (data) setConvs(data as Conversacion[]) })
+  }
+
+  useEffect(() => { fetchConvs() }, [])
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -51,7 +51,14 @@ export default function AtencionesPage() {
                 className="md:hidden flex items-center gap-2 px-4 py-3 border-b border-outline-variant text-sm text-stitch-primary font-semibold bg-surface-card flex-shrink-0">
                 ← Volver
               </button>
-              <AtencionDetail conv={selectedConv} onClosed={() => setSelectedConv(null)} />
+              <AtencionDetail
+                conv={selectedConv}
+                onClosed={() => {
+                  // Sacar inmediatamente de la lista local sin esperar real-time
+                  setConvs(prev => prev.filter(c => c.telefono !== selectedConv.telefono))
+                  setSelectedConv(null)
+                }}
+              />
             </>
           ) : (
             <div className="flex items-center justify-center h-full text-text-m text-sm">
