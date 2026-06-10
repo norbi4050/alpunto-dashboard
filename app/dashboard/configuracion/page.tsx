@@ -337,8 +337,9 @@ export default function ConfiguracionPage() {
                             type="text"
                             defaultValue={s.nombre}
                             onBlur={e => { if (e.target.value.trim() && e.target.value !== s.nombre) actualizarServicio(s.id, 'nombre', e.target.value.trim()) }}
-                            className="w-full bg-transparent border-b border-outline-variant focus:border-stitch-primary outline-none text-[12px] font-semibold text-text-p mb-0.5"
+                            className="w-full bg-surface-container border border-outline-variant hover:border-stitch-primary/60 focus:border-stitch-primary rounded px-2 py-1 outline-none text-[12px] font-semibold text-text-p mb-0.5 transition-colors"
                             placeholder="Nombre del servicio"
+                            title="Clic para editar el nombre"
                           />
                           <div className="flex items-center gap-1 mt-0.5">
                             <input type="number" defaultValue={s.duracion_min} min="5" max="180"
