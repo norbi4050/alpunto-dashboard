@@ -3,6 +3,8 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { addDays, format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { DayPicker } from 'react-day-picker'
+import 'react-day-picker/style.css'
 
 interface Barbero { id: string; nombre: string; color: string }
 interface Servicio { id: string; nombre: string; precio: number; duracion_min: number }
@@ -44,7 +46,9 @@ export function ReservarFlow({ token }: { token?: string }) {
 
   // Datos del cliente original (token holder)
   const [nombre, setNombre]         = useState('')
-  const [cumpleanos, setCumpleanos] = useState('')
+  const [cumpleanos, setCumpleanos] = useState('')       // DD/MM/AAAA
+  const [cumpleDate, setCumpleDate] = useState<Date | undefined>()
+  const [showCumplePicker, setShowCumplePicker] = useState(false)
   const [nombrePrefill, setNombrePrefill] = useState(false)
   const [telefonoDirecto, setTelefonoDirecto] = useState('') // solo flujo directo (sin token)
 
@@ -75,8 +79,15 @@ export function ReservarFlow({ token }: { token?: string }) {
           if (d.clienteExistente?.nombre) {
             setNombre(d.clienteExistente.nombre)
             setNombrePrefill(true)
-            if (d.clienteExistente.fecha_nacimiento)
-              setCumpleanos(d.clienteExistente.fecha_nacimiento)
+            if (d.clienteExistente.fecha_nacimiento) {
+              // fecha_nacimiento llega como AAAA-MM-DD desde Supabase
+              const p = d.clienteExistente.fecha_nacimiento.split('-')
+              if (p.length === 3) {
+                const date = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]))
+                setCumpleDate(date)
+                setCumpleanos(`${p[2]}/${p[1]}/${p[0]}`)
+              }
+            }
           }
         } else {
           setServicios(d.servicios ?? [])
@@ -357,15 +368,40 @@ export function ReservarFlow({ token }: { token?: string }) {
                     Fecha de cumpleaños <span className="text-gray-300 font-normal">(opcional)</span>
                   </label>
                   <p className="text-[11px] text-[#c9a84c] font-medium mb-1.5">🎁 En tu cumpleaños te regalamos un corte gratis</p>
-                  <input
-                    type="text"
-                    value={cumpleanos}
-                    onChange={e => setCumpleanos(autoFormatFecha(e.target.value))}
-                    placeholder="DD/MM/AAAA"
-                    maxLength={10}
-                    inputMode="numeric"
-                    className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none focus:border-gray-900 transition-colors shadow-sm placeholder:text-gray-300"
-                  />
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowCumplePicker(v => !v)}
+                      className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-left flex items-center justify-between shadow-sm hover:border-gray-500 transition-colors"
+                    >
+                      <span className={cumpleanos ? 'text-gray-700' : 'text-gray-300'}>
+                        {cumpleanos || 'DD/MM/AAAA'}
+                      </span>
+                      <span className="text-gray-400 text-base">📅</span>
+                    </button>
+                    {showCumplePicker && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setShowCumplePicker(false)} />
+                        <div className="absolute z-50 top-full mt-2 left-0 right-0 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
+                          <DayPicker
+                            mode="single"
+                            captionLayout="dropdown"
+                            startMonth={new Date(1940, 0)}
+                            endMonth={new Date()}
+                            defaultMonth={cumpleDate ?? new Date(2000, 0)}
+                            selected={cumpleDate}
+                            locale={es}
+                            onSelect={(date) => {
+                              if (!date) return
+                              setCumpleDate(date)
+                              setCumpleanos(format(date, 'dd/MM/yyyy'))
+                              setShowCumplePicker(false)
+                            }}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-3 mt-2">
                   <button

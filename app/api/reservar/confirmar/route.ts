@@ -105,13 +105,13 @@ export async function POST(req: NextRequest) {
       cliente_id: clienteRow?.id,
       barbero_id: body.barbero_id,
       servicio: body.servicio_nombre,
-      servicio_id: servicioId,
+      duracion_min: body.servicio_duracion,
       precio: servicioPrecio,
       fecha_hora: body.fecha_hora,
       telefono: telefonoTurno,
       estado: 'agendado',
+      canal: body.token ? 'whatsapp' : 'web',
       origen: body.token ? 'bot_web' : 'web_directa',
-      ...(body.para_otro ? { notas: `Reservado por otro WhatsApp${telefonoToken ? ` (${telefonoToken})` : ''}` } : {}),
     }).select('id').single()
 
   if (turnoErr || !turnoCreado)
