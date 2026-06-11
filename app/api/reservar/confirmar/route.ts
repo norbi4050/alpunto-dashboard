@@ -128,12 +128,16 @@ export async function POST(req: NextRequest) {
   }
 
   // Enviar confirmación WA al número de notificación
+  let waStatus: string | undefined
   try {
-    await enviarConfirmacionWA(
+    waStatus = await enviarConfirmacionWA(
       telefonoNotif, body.nombre, body.fecha_hora,
       body.servicio_nombre, body.barbero_nombre, body.para_otro ?? false
     )
-  } catch { /* no bloquear si WA falla */ }
+  } catch (e) {
+    console.error('[WA confirmar] exception:', e)
+    waStatus = `exception: ${e}`
+  }
 
   // Upsell de productos al que hizo la reserva (si tiene teléfono propio)
   const telefonoUpsell = body.para_otro ? (telefonoToken || body.telefono) : telefonoTurno
@@ -147,7 +151,7 @@ export async function POST(req: NextRequest) {
     } catch { /* upsell es opcional */ }
   }
 
-  return NextResponse.json({ ok: true, turno_id: turnoCreado.id })
+  return NextResponse.json({ ok: true, turno_id: turnoCreado.id, wa_status: waStatus })
 }
 
 function fmtPrecio(n: number) {
@@ -189,10 +193,13 @@ async function enviarUpsellWA(
 async function enviarConfirmacionWA(
   telefono: string, nombre: string, fechaHora: string,
   servicio: string, barbero: string, paraOtro: boolean
-) {
+): Promise<string> {
   const token = process.env.META_SYSTEM_USER_TOKEN
   const phoneId = process.env.META_PHONE_NUMBER_ID
-  if (!token || !phoneId) return
+  if (!token || !phoneId) {
+    console.error('[WA confirmar] env vars faltantes — META_SYSTEM_USER_TOKEN o META_PHONE_NUMBER_ID no definidas')
+    return 'missing_env'
+  }
 
   const d = new Date(fechaHora)
   const art = new Date(d.getTime() - 3 * 60 * 60 * 1000)
@@ -205,14 +212,23 @@ async function enviarConfirmacionWA(
     ? `✅ ¡Turno confirmado para ${nombre}!\n\n📅 ${fechaStr} a las ${horaStr}\n✂️ ${servicio} con ${barbero}\n\nTe esperamos en AlPunto. ¡Cualquier cambio escribinos! 💈`
     : `✅ ¡Turno confirmado, ${nombre}!\n\n📅 ${fechaStr} a las ${horaStr}\n✂️ ${servicio} con ${barbero}\n\nTe esperamos en AlPunto. ¡Cualquier cambio escribinos! 💈`
 
-  await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+  const to = telefono.replace(/\D/g, '')
+  console.log(`[WA confirmar] enviando a ${to} desde phoneId ${phoneId}`)
+  const resp = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messaging_product: 'whatsapp',
-      to: telefono.replace(/\D/g, ''),
+      to,
       type: 'text',
       text: { body: msg },
     }),
   })
+  const respBody = await resp.text()
+  if (!resp.ok) {
+    console.error(`[WA confirmar] Meta API error ${resp.status}:`, respBody)
+    return `meta_${resp.status}: ${respBody.slice(0, 200)}`
+  }
+  console.log('[WA confirmar] OK:', respBody.slice(0, 100))
+  return 'ok'
 }
