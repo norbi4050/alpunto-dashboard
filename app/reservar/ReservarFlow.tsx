@@ -369,20 +369,40 @@ export function ReservarFlow({ token }: { token?: string }) {
                   </label>
                   <p className="text-[11px] text-[#c9a84c] font-medium mb-1.5">🎁 En tu cumpleaños te regalamos un corte gratis</p>
                   <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setShowCumplePicker(v => !v)}
-                      className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-left flex items-center justify-between shadow-sm hover:border-gray-500 transition-colors"
-                    >
-                      <span className={cumpleanos ? 'text-gray-700' : 'text-gray-300'}>
-                        {cumpleanos || 'DD/MM/AAAA'}
-                      </span>
-                      <span className="text-gray-400 text-base">📅</span>
-                    </button>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={cumpleanos}
+                        onChange={e => {
+                          const v = autoFormatFecha(e.target.value)
+                          setCumpleanos(v)
+                          const p = v.split('/')
+                          if (p.length === 3 && p[2].length === 4) {
+                            const d = new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]))
+                            if (!isNaN(d.getTime())) setCumpleDate(d)
+                          }
+                        }}
+                        placeholder="DD/MM/AAAA"
+                        maxLength={10}
+                        inputMode="numeric"
+                        className="flex-1 bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none focus:border-gray-900 transition-colors shadow-sm placeholder:text-gray-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCumplePicker(v => !v)}
+                        className="bg-white border border-gray-300 rounded-xl px-3.5 text-gray-500 hover:border-gray-500 hover:text-gray-700 transition-colors shadow-sm"
+                        title="Abrir calendario"
+                      >
+                        📅
+                      </button>
+                    </div>
                     {showCumplePicker && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setShowCumplePicker(false)} />
-                        <div className="absolute z-50 top-full mt-2 left-0 right-0 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
+                        <div
+                          className="absolute z-50 top-full mt-2 left-0 right-0 bg-gray-50 border-2 border-gray-300 rounded-2xl shadow-2xl overflow-hidden"
+                          style={{ '--rdp-accent-color': '#111827', '--rdp-accent-color-dark': '#111827' } as React.CSSProperties}
+                        >
                           <DayPicker
                             mode="single"
                             captionLayout="dropdown"
