@@ -99,6 +99,16 @@ export async function POST(req: NextRequest) {
   const { data: clienteRow } = await supabase
     .from('clientes').select('id').eq('whatsapp', telefonoTurno).single()
 
+  // Re-verificar que el slot siga libre (evita doble booking entre cargar la grilla y confirmar)
+  const { data: yaOcupado } = await supabase
+    .from('turnos').select('id')
+    .eq('barbero_id', body.barbero_id)
+    .eq('fecha_hora', body.fecha_hora)
+    .not('estado', 'in', '("cancelado","auto_cancelado","no_show")')
+    .maybeSingle()
+  if (yaOcupado)
+    return NextResponse.json({ error: 'Ese horario se acaba de ocupar. Elegí otro, por favor.' }, { status: 409 })
+
   // Crear turno
   const { data: turnoCreado, error: turnoErr } = await supabase
     .from('turnos').insert({
@@ -114,6 +124,9 @@ export async function POST(req: NextRequest) {
       origen: body.token ? 'bot_web' : 'web_directa',
     }).select('id').single()
 
+  // 23505 = violación del índice único (alguien tomó el slot en la misma fracción de segundo)
+  if (turnoErr?.code === '23505')
+    return NextResponse.json({ error: 'Ese horario se acaba de ocupar. Elegí otro, por favor.' }, { status: 409 })
   if (turnoErr || !turnoCreado)
     return NextResponse.json({ error: 'Error al crear el turno' }, { status: 500 })
 

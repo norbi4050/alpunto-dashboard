@@ -374,7 +374,7 @@ export default function ConfiguracionPage() {
                             placeholder={`Barbero ${b.slot}`} />
                         </div>
                         {b.es_dueno
-                          ? <span className="text-[10px] text-stitch-primary border border-border-primary rounded px-1.5 py-0.5">Dueño</span>
+                          ? <span className="text-[10px] text-stitch-primary border border-border-primary rounded px-1.5 py-0.5">Barbero</span>
                           : (
                             <label className="flex items-center gap-1 cursor-pointer flex-shrink-0">
                               <input type="checkbox" checked={b.activo} onChange={e => actualizarBarbero(b.id, 'activo', e.target.checked)} className="accent-stitch-primary" />

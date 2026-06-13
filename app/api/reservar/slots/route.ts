@@ -82,8 +82,9 @@ export async function GET(req: NextRequest) {
     for (let m = openMin; m + SLOT_INTERVAL <= closeMin; m += SLOT_INTERVAL) {
       if (m < bufferMin) continue
 
-      // Bloqueado por rango de horas?
-      const bloqueado = rangosBloqueados.some(r => m >= r.ini && m < r.fin)
+      // Bloqueado por rango de horas? (solapamiento real del slot completo de 40 min,
+      // igual que el bot: el slot [m, m+40) pisa el bloqueo [ini, fin) si se cruzan)
+      const bloqueado = rangosBloqueados.some(r => m < r.fin && m + SLOT_INTERVAL > r.ini)
       if (bloqueado) continue
 
       // Algún turno arranca en esta ventana de 40 min?

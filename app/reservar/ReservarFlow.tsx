@@ -63,6 +63,7 @@ export function ReservarFlow({ token }: { token?: string }) {
   const [slots, setSlots]           = useState<Slot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [slotSel, setSlotSel]       = useState<Slot | null>(null)
+  const [slotsReloadKey, setSlotsReloadKey] = useState(0) // bump para recargar slots tras un 409
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -106,7 +107,7 @@ export function ReservarFlow({ token }: { token?: string }) {
       .catch(() => { setErrorMsg('No se pudo cargar la página. Intentá más tarde.'); setStep('error') })
   }, [token])
 
-  // Cargar slots cuando cambia barbero o fecha
+  // Cargar slots cuando cambia barbero o fecha (o tras un 409 de slot ocupado)
   useEffect(() => {
     if (step !== 'horario' || !barberos[barberoIdx] || !fechas[fechaIdx] || !servicio) return
     setLoadingSlots(true)
@@ -116,7 +117,7 @@ export function ReservarFlow({ token }: { token?: string }) {
       .then(r => r.json())
       .then(d => { setSlots(d.slots ?? []); setLoadingSlots(false) })
       .catch(() => setLoadingSlots(false))
-  }, [step, barberoIdx, fechaIdx, barberos, fechas, servicio])
+  }, [step, barberoIdx, fechaIdx, barberos, fechas, servicio, slotsReloadKey])
 
   // Confirmar turno
   async function confirmar() {
@@ -161,15 +162,18 @@ export function ReservarFlow({ token }: { token?: string }) {
     })
     const data = await res.json()
     setSubmitting(false)
-    if (data.ok) setStep('confirmado')
-    else setErrorMsg(data.error ?? 'Error al confirmar. Intentá de nuevo.')
+    if (data.ok) { setStep('confirmado'); return }
+    setErrorMsg(data.error ?? 'Error al confirmar. Intentá de nuevo.')
+    // Si el slot se ocupó (409), recargar la grilla para que el usuario elija otro
+    if (res.status === 409) setSlotsReloadKey(k => k + 1)
   }
 
   const manana = slots.filter(s => parseInt(s.hora.split(':')[0]) < 13)
   const tarde  = slots.filter(s => parseInt(s.hora.split(':')[0]) >= 13)
 
   // Helpers de validación
-  const datosOtroValidos = nombreOtro.trim().length > 0
+  // En flujo directo el teléfono de quien va es obligatorio (no hay teléfono propio al cual mandar)
+  const datosOtroValidos = nombreOtro.trim().length > 0 && (tipo === 'token' || telefonoOtro.trim().length > 0)
   const datosDirectosValidos = nombre.trim() && telefonoDirecto.trim()
 
   return (
@@ -274,7 +278,6 @@ export function ReservarFlow({ token }: { token?: string }) {
                 >
                   <div>
                     <p className="font-semibold text-gray-900 text-sm">{s.nombre}</p>
-                    <p className="text-gray-400 text-xs mt-0.5">40 min</p>
                   </div>
                   <span className="text-[#c9a84c] font-bold text-sm">{fmtPrecio(s.precio)}</span>
                 </button>
@@ -311,9 +314,15 @@ export function ReservarFlow({ token }: { token?: string }) {
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 block mb-1">
-                    WhatsApp <span className="text-gray-300 font-normal">(opcional)</span>
+                    WhatsApp {tipo === 'token'
+                      ? <span className="text-gray-300 font-normal">(opcional)</span>
+                      : <span className="text-gray-400 font-normal">*</span>}
                   </label>
-                  <p className="text-[11px] text-gray-400 mb-1.5">Si no lo tenés, te mandamos la confirmación a vos</p>
+                  <p className="text-[11px] text-gray-400 mb-1.5">
+                    {tipo === 'token'
+                      ? 'Si no lo tenés, te mandamos la confirmación a vos'
+                      : 'Le mandamos la confirmación del turno a este número'}
+                  </p>
                   <input
                     type="tel"
                     value={telefonoOtro}
@@ -450,9 +459,9 @@ export function ReservarFlow({ token }: { token?: string }) {
             <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3 mb-5 flex items-center justify-between shadow-sm">
               <div>
                 <p className="font-semibold text-gray-900 text-sm">✂️ {servicio.nombre}</p>
-                <p className="text-gray-400 text-xs mt-0.5">
-                  40 min{servicio.precio ? ` · ${fmtPrecio(servicio.precio)}` : ''}
-                </p>
+                {servicio.precio ? (
+                  <p className="text-gray-400 text-xs mt-0.5">{fmtPrecio(servicio.precio)}</p>
+                ) : null}
               </div>
               {tipo === 'directo' && (
                 <button
